@@ -126,7 +126,7 @@ impl AccountPageTab for PlayersPage {
                                         br;
                                         div.dropdown-menu.js-search #edit-player-subdivision data-default = "None" {
                                             div{
-                                                input type="text" style = "color: #444446; font-weight: bold;";
+                                                input type="text" style = "font-weight: bold;";
                                             }
                                             div.menu {
                                                 ul {

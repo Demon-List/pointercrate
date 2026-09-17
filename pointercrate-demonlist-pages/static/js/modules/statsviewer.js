@@ -1,7 +1,6 @@
 import {
   getCountryFlag,
   getSubdivisionFlag,
-  populateSubdivisionDropdown,
 } from "/static/demonlist/js/modules/demonlist.js";
 import {
   Dropdown,
@@ -11,6 +10,7 @@ import {
   Viewer,
 } from "/static/core/js/modules/form.js";
 import { tr, trp } from "/static/core/js/modules/localization.js";
+import { currentTheme, ThemedElement, transitionTheme } from "/static/core/js/modules/theme.js";
 
 export class StatsViewer extends FilteredPaginator {
   /**
@@ -65,6 +65,8 @@ export class StatsViewer extends FilteredPaginator {
         }
       });
     }
+
+    this.updateQueryData("list", window.active_list);
 
     this.demonSortingModeDropdown = new Dropdown(
       document.getElementById("demon-sorting-mode-dropdown")
@@ -163,12 +165,14 @@ export class StatsViewer extends FilteredPaginator {
   formatDemon(demon, link, dontStyle) {
     var element;
 
+    const demonPositionKey = window.active_list == "demonlist" ? "rated_position" : "position";
+
     if (dontStyle) {
       element = document.createElement("span");
     } else {
-      if (demon.position <= this.list_size) {
+      if (demon[demonPositionKey] <= this.list_size) {
         element = document.createElement("b");
-      } else if (demon.position <= this.extended_list_size) {
+      } else if (demon[demonPositionKey] <= this.extended_list_size) {
         element = document.createElement("span");
       } else {
         element = document.createElement("i");
@@ -254,6 +258,18 @@ export class InteractiveWorldMap {
 
     this.relativeMousePosition = { x: 0, y: 0 };
     this.lastTouchPosition = { x: 0, y: 0 };
+
+    const link = document.createElementNS("http://www.w3.org/1999/xhtml", "link");
+    link.setAttribute("href", `/${document.documentElement.dataset.list}/statsviewer/heatmap.css`);
+    link.setAttribute("rel", "stylesheet");
+    link.setAttribute("type", "text/css");
+    this.svg.appendChild(link);
+
+    const mapTheme = new ThemedElement(this.map, (map, theme) => transitionTheme(theme, map.contentDocument, map.contentDocument.documentElement, () => {
+      map.contentDocument.documentElement.style.setProperty("--color-pc-button-bg", getComputedStyle(document.documentElement).getPropertyValue("--color-pc-button-bg"));
+    }));
+    this.map.style = "visibility: visible";
+    mapTheme.toggleFn(this.map, currentTheme());
 
     this.setupTouchHandlers();
     this.setupMouseHandlers();

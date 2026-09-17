@@ -1,5 +1,5 @@
 use crate::{
-    demon::{Demon, FullDemon, MinimalDemon},
+    demon::{recompute_rated_positions, Demon, FullDemon, MinimalDemon},
     error::{DemonlistError, Result},
     player::{recompute_scores, DatabasePlayer},
 };
@@ -30,6 +30,9 @@ pub struct PatchDemon {
 
     #[serde(default, deserialize_with = "non_nullable")]
     pub publisher: Option<String>,
+
+    #[serde(default, deserialize_with = "non_nullable")]
+    pub rated: Option<bool>,
 }
 
 impl FullDemon {
@@ -89,6 +92,10 @@ impl Demon {
             self.set_requirement(requirement, connection).await?;
         }
 
+        if let Some(rated) = patch.rated {
+            self.set_rated(rated, connection).await?;
+        }
+
         Ok(self)
     }
 
@@ -130,10 +137,12 @@ impl Demon {
             .await?;
 
         sqlx::query!("UPDATE demons SET requirement = $1 WHERE id = $2", requirement, self.base.id)
-            .execute(connection)
+            .execute(&mut *connection)
             .await?;
 
         self.requirement = requirement;
+
+        recompute_scores(connection).await?;
 
         Ok(())
     }
@@ -166,6 +175,19 @@ impl Demon {
             .await?;
 
         self.thumbnail = thumbnail;
+
+        Ok(())
+    }
+
+    pub async fn set_rated(&mut self, rated: bool, connection: &mut PgConnection) -> Result<()> {
+        sqlx::query!("UPDATE demons SET rated = $1 WHERE id = $2", rated, self.base.id)
+            .execute(&mut *connection)
+            .await?;
+
+        self.rated = rated;
+
+        recompute_rated_positions(connection).await?;
+        recompute_scores(connection).await?;
 
         Ok(())
     }
@@ -247,6 +269,7 @@ impl MinimalDemon {
 
         self.position = to;
 
+        recompute_rated_positions(&mut *connection).await?;
         recompute_scores(connection).await?;
 
         Ok(())
