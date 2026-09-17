@@ -3,13 +3,8 @@ use std::collections::HashMap;
 use pointercrate_core_macros::{localized, themed};
 use rocket::{response::Redirect, State};
 
-<<<<<<< HEAD
-use chrono::{DateTime, FixedOffset, NaiveDate, Utc};
-use pointercrate_core::{audit::AuditLogEntryType, pool::PointercratePool};
-=======
 use chrono::{DateTime, Datelike, FixedOffset, NaiveDate, Utc};
 use pointercrate_core::{audit::AuditLogEntryType, pool::PointercratePool, theme::Theme};
->>>>>>> pr-304
 use pointercrate_core_api::{
     error::Result,
     response::{Page, Response2},
@@ -65,13 +60,8 @@ pub async fn overview(
     let mut tardis = Tardis::new(timemachine.unwrap_or(false));
 
     if let Some(destination) = specified_when {
-<<<<<<< HEAD
         let demons_then = list_at(&mut connection, destination.naive_utc()).await?;
         tardis.activate(destination, demons_then, true)
-=======
-        let demons_then = list_at(&mut connection, &list.0, destination.naive_utc()).await?;
-        tardis.activate(list.0.to_owned(), destination, demons_then, !is_april_1st)
->>>>>>> pr-304
     }
 
     Ok(Page::new(list::inject_list_context(
