@@ -60,8 +60,8 @@ pub async fn overview(
     let mut tardis = Tardis::new(timemachine.unwrap_or(false));
 
     if let Some(destination) = specified_when {
-        let demons_then = list_at(&mut connection, destination.naive_utc()).await?;
-        tardis.activate(destination, demons_then, true)
+        let demons_then = list_at(&mut connection, &list.0, destination.naive_utc()).await?;
+        tardis.activate(list.0, destination, demons_then, true)
     }
 
     Ok(Page::new(list::inject_list_context(
