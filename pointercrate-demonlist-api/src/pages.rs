@@ -164,7 +164,7 @@ pub async fn demon_page(
             demonlist: current_list(&list.0, &mut connection).await?,
             list: list.0,
             movements: modifications,
-            integration: gd.load_level_for_demon(&full_demon.demon).await,
+            integration: gd.load_level_for_demon(&full_demon.demon, &mut connection).await,
             data: full_demon,
         },
     )))

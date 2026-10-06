@@ -12,7 +12,7 @@ use log::{debug, error, trace, warn};
 use pointercrate_core::ratelimits;
 use pointercrate_demonlist::demon::Demon;
 use reqwest::{header::CONTENT_TYPE, Client};
-use sqlx::{Pool, Postgres};
+use sqlx::{PgConnection, Pool, Postgres};
 use std::{borrow::Cow, sync::Arc};
 
 pub use dash_rs::{
@@ -37,7 +37,7 @@ impl GeometryDashConnector {
     ///
     /// If the last time the data for this demon was sought on the Geometry Dash servers was over 24h ago,
     /// re-query them for updated data.
-    pub async fn load_level_for_demon(&self, demon: &Demon) -> Option<IntegrationLevel> {
+    pub async fn load_level_for_demon(&self, demon: &Demon, connection: &mut PgConnection) -> Option<IntegrationLevel> {
         if self.ratelimits.throttle_throttle(demon.base.id).is_ok()
             && self.ratelimits.throttle().is_ok()
             && self.ratelimits.demon_refresh(demon.base.id).is_ok()
@@ -50,12 +50,12 @@ impl GeometryDashConnector {
 
         if let Some(level_id) = demon.level_id {
             let level = self
-                .lookup_level(level_id)
+                .lookup_level(level_id, &mut *connection)
                 .await?
-                .with_data(self.lookup_level_data(level_id).await?);
+                .with_data(self.lookup_level_data(level_id, &mut *connection).await?);
 
             let song = match level.custom_song {
-                Some(id) => self.lookup_newgrounds_song(id).await,
+                Some(id) => self.lookup_newgrounds_song(id, &mut *connection).await,
                 None => None,
             };
 
@@ -164,9 +164,7 @@ impl GeometryDashConnector {
         }
     }
 
-    pub async fn lookup_creator(&self, user_id: u64) -> Option<Creator<'static>> {
-        let mut connection = self.pool.acquire().await.ok()?;
-
+    pub async fn lookup_creator(&self, user_id: u64, connection: &mut PgConnection) -> Option<Creator<'static>> {
         let creator_row = sqlx::query!("SELECT * FROM gj_creator WHERE user_id = $1", user_id as i64)
             .fetch_one(&mut *connection)
             .await
@@ -195,9 +193,7 @@ impl GeometryDashConnector {
         let _ = connection.commit().await;
     }
 
-    pub async fn lookup_newgrounds_song(&self, song_id: u64) -> Option<NewgroundsSong<'static>> {
-        let mut connection = self.pool.acquire().await.ok()?;
-
+    pub async fn lookup_newgrounds_song(&self, song_id: u64, connection: &mut PgConnection) -> Option<NewgroundsSong<'static>> {
         let song_row = sqlx::query!("SELECT * from gj_newgrounds_song WHERE song_id = $1", song_id as i64)
             .fetch_one(&mut *connection)
             .await
@@ -242,9 +238,7 @@ impl GeometryDashConnector {
         let _ = connection.commit().await;
     }
 
-    pub async fn lookup_level_data(&self, level_id: u64) -> Option<LevelData<'static>> {
-        let mut connection = self.pool.acquire().await.ok()?;
-
+    pub async fn lookup_level_data(&self, level_id: u64, connection: &mut PgConnection) -> Option<LevelData<'static>> {
         let row = sqlx::query!("SELECT * FROM gj_level_data WHERE level_id = $1", level_id as i64)
             .fetch_one(&mut *connection)
             .await
@@ -304,9 +298,7 @@ impl GeometryDashConnector {
         let _ = connection.commit().await;
     }
 
-    pub async fn lookup_level(&self, level_id: u64) -> Option<Level<'static, ()>> {
-        let mut connection = self.pool.acquire().await.ok()?;
-
+    pub async fn lookup_level(&self, level_id: u64, connection: &mut PgConnection) -> Option<Level<'static, ()>> {
         let row = sqlx::query!("SELECT * FROM gj_level WHERE level_id = $1", level_id as i64)
             .fetch_one(&mut *connection)
             .await
