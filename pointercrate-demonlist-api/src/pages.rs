@@ -144,7 +144,7 @@ pub async fn demon_page(position: i16, pool: &State<PointercratePool>, gd: &Stat
         },
         demonlist: current_list(&mut connection).await?,
         movements: modifications,
-        integration: gd.load_level_for_demon(&full_demon.demon).await,
+        integration: gd.load_level_for_demon(&full_demon.demon, &mut connection).await,
         data: full_demon,
     }))
 }
