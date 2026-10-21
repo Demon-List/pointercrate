@@ -7,20 +7,12 @@ use pointercrate_core_pages::{trp_html, PageFragment};
 use pointercrate_user::config;
 
 pub fn registration_page() -> PageFragment {
-    let mut frag = PageFragment::new("Pointercrate - Registration", "Register for a new pointercrate account!")
+    PageFragment::new("Pointercrate - Registration", "Register for a new pointercrate account!")
         .module("/static/user/js/register.js")
         .module("/static/core/js/modules/form.js")
         .module("/static/core/js/modules/tab.js")
         .stylesheet("/static/user/css/login.css")
-        .body(register_page_body());
-
-    if cfg!(feature = "oauth2") {
-        frag = frag
-            .async_script("https://accounts.google.com/gsi/client")
-            .module("/static/user/js/gsi-theme.js");
-    }
-
-    frag
+        .body(register_page_body())
 }
 
 fn register_page_body() -> Markup {
@@ -44,7 +36,7 @@ fn register_page_body() -> Markup {
                             data-client_id=(config::google_client_id())
                             data-callback="googleOauthRegisterCallback" {}
 
-                        script src=(format!("https://accounts.google.com/gsi/client?hl={}", &lang)) async {}
+                        script src=(format!("https://accounts.google.com/gsi/client?hl={}", &lang)) defer {}
                         div .g_id_signin data-text="signup_with" data-theme=(task_theme().as_gsi_theme()) style="margin: 10px 0px" {}
                         @if cfg!(feature = "legacy_accounts") {
                             p.or style="text-size: small; margin: 0px" { (tr("login.methods-separator")) }

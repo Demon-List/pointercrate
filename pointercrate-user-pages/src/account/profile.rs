@@ -6,7 +6,6 @@ use pointercrate_core::{
     theme::task_theme,
     trp,
 };
-use pointercrate_core_pages::head::Script;
 use pointercrate_user::{
     auth::{AuthenticatedUser, NonMutating},
     config,
@@ -151,7 +150,7 @@ impl AccountPageTab for ProfileTab {
                             data-client_id=(config::google_client_id())
                             data-callback="googleOauthCallback" {}
 
-                        script src=(format!("https://accounts.google.com/gsi/client?hl={}", &lang)) async {}
+                        script src=(format!("https://accounts.google.com/gsi/client?hl={}", &lang)) defer {}
                         div .g_id_signin data-text="continue_with" data-theme=(task_theme().as_gsi_theme()) style="margin: 10px 0px" data-locale=(lang) {}
                         p.error #g-signin-error style="text-align: left" {}
                     }
