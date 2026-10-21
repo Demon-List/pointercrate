@@ -163,7 +163,7 @@ pub struct RankedPlayer {
 
 impl Paginatable<RankingPagination> for RankedPlayer {
     async fn first_and_last(connection: &mut PgConnection) -> Result<Option<(i32, i32)>, sqlx::Error> {
-        Ok(sqlx::query!("SELECT COUNT(*) FROM players WHERE NOT banned AND (score > 0.0 OR ratedplus_score > 0.0)")
+        Ok(sqlx::query!("SELECT COUNT(*) FROM players WHERE NOT banned AND (score IS NOT NULL OR ratedplus_score IS NOT NULL)")
             .fetch_one(connection)
             .await?
             .count
