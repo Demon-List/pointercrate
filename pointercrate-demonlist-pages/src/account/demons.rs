@@ -131,6 +131,15 @@ impl AccountPageTab for DemonsTab {
                                 }
                                 div.stats-container.flex.space  {
                                     span{
+                                        b {
+                                            i.fa.fa-pencil-alt.clickable #demon-levelid-pen aria-hidden = "true" {} " " (tr("demon-viewer.levelid-field"))
+                                        }
+                                        br;
+                                        span #demon-levelid {}
+                                    }
+                                }
+                                div.stats-container.flex.space  {
+                                    span{
                                         i.fa.fa-plus.clickable #demon-add-creator-pen aria-hidden = "true" {} b {
                                             " " (tr("demon-viewer.creators-field"))
                                         }
@@ -155,6 +164,7 @@ impl AccountPageTab for DemonsTab {
             (change_thumbnail_dialog())
             (change_verifier_dialog())
             (change_publisher_dialog())
+            (change_levelid_dialog())
             (add_creator_dialog())
         }
     }
@@ -332,6 +342,31 @@ fn change_publisher_dialog() -> Markup {
         &tr("demon-publisher-dialog.submit"),
         "publisher",
     )
+}
+
+fn change_levelid_dialog() -> Markup {
+    html! {
+        div.overlay.closable {
+            div.dialog #demon-levelid-dialog {
+                span.plus.cross.hover {}
+                h2.underlined.pad {
+                    (tr("demon-levelid-dialog"))
+                }
+                p style = "max-width: 400px"{
+                    (tr("demon-levelid-dialog.info"))
+                }
+                form.flex.col novalidate = "" {
+                    p.info-red.output {}
+                    p.info-green.output {}
+                    span.form-input #demon-levelid-edit {
+                        input name = "level_id" type = "number" min = "1";
+                        p.error {}
+                    }
+                    input.button.blue.hover type = "submit" style = "margin: 15px auto 0px;" value = (tr("demon-levelid-dialog.submit"));
+                }
+            }
+        }
+    }
 }
 
 fn add_creator_dialog() -> Markup {
