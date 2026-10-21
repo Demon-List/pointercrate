@@ -6,6 +6,7 @@ use pointercrate_core::{
     theme::task_theme,
     trp,
 };
+use pointercrate_core_pages::head::Script;
 use pointercrate_user::{
     auth::{AuthenticatedUser, NonMutating},
     config,
