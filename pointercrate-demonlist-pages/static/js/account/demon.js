@@ -22,7 +22,7 @@ import {
   FormDialog,
   setupDropdownEditor,
 } from "/static/core/js/modules/form.js";
-import { loadResource, tr } from "/static/core/js/modules/localization.js";
+import { tr } from "/static/core/js/modules/localization.js";
 
 export let demonManager;
 
@@ -50,6 +50,8 @@ export class DemonManager extends FilteredPaginator {
 
     this._verifier = document.getElementById("demon-verifier");
     this._publisher = document.getElementById("demon-publisher");
+
+    this._level_id = document.getElementById("demon-levelid");
 
     this._creators = document.getElementById("demon-creators");
 
@@ -159,6 +161,12 @@ export class DemonManager extends FilteredPaginator {
       new PaginatorEditorBackend(this, true),
       this.output
     );
+    setupFormDialogEditor(
+      new PaginatorEditorBackend(this, true),
+      "demon-levelid-dialog",
+      "demon-levelid-pen",
+      this.output
+    );
   }
 
   onReceive(response) {
@@ -203,6 +211,13 @@ export class DemonManager extends FilteredPaginator {
       " (" +
       this.currentObject.verifier.id +
       ")";
+    
+    if (this.currentObject.level_id) {
+      this._level_id.innerText = this.currentObject.level_id;
+      this._level_id.style.display = "initial";
+    } else {
+      this._level_id.style.display = "none";
+    }
 
     this._rated.selectSilently(this.currentObject.rated.toString());
 
