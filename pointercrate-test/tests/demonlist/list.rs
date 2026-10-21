@@ -1,7 +1,7 @@
 use pointercrate_core::etag::Taggable;
 use pointercrate_demonlist::{
     demon::{recompute_rated_positions, Demon, FullDemon},
-    player::{recompute_scores, DatabasePlayer, FullPlayer},
+    player::{recompute_scores, DatabasePlayer, FullPlayer, Player},
     record::RecordStatus,
     LIST_MODERATOR,
 };
@@ -10,6 +10,10 @@ use pointercrate_test::TestClient;
 use pointercrate_user::auth::{AuthenticatedUser, PasswordOrBrowser};
 use rocket::http::Status;
 use sqlx::{PgConnection, Pool, Postgres};
+use std::{
+    collections::hash_map::DefaultHasher,
+    hash::{Hash, Hasher},
+};
 
 fn ranking_contains(ranking: &[serde_json::Value], name: &str) -> bool {
     ranking.iter().any(|player| player["name"].as_str() == Some(name))
@@ -99,7 +103,7 @@ async fn test_rerating_demon_restores_demonlist_score_and_position(pool: Pool<Po
         .get_success_result()
         .await;
     let original_score = baseline.player.rated_score;
-    assert_ne!(original_score, 0.0f64);
+    assert_ne!(original_score.unwrap(), 0.0f64);
 
     set_demon_rated(&clnt, &helper, demon_id, false).await;
 
@@ -108,7 +112,7 @@ async fn test_rerating_demon_restores_demonlist_score_and_position(pool: Pool<Po
         .expect_status(Status::Ok)
         .get_success_result()
         .await;
-    assert_eq!(unrated.player.rated_score, 0.0f64);
+    assert_eq!(unrated.player.rated_score, None);
 
     set_demon_rated(&clnt, &helper, demon_id, true).await;
 
@@ -239,8 +243,12 @@ async fn test_unrated_demon_gives_only_ratedplus_score(pool: Pool<Postgres>) {
         .get_success_result()
         .await;
 
-    assert_ne!(player.player.score, 0.0f64, "Unrated demon failed to give verifier a rated+ score");
-    assert_eq!(player.player.rated_score, 0.0f64, "Unrated demon gave verifier a demonlist score");
+    assert_ne!(
+        player.player.score.unwrap(),
+        0.0f64,
+        "Unrated demon failed to give verifier a rated+ score"
+    );
+    assert_eq!(player.player.rated_score, None, "Unrated demon gave verifier a demonlist score");
 }
 
 #[sqlx::test(migrations = "../migrations")]
@@ -258,9 +266,14 @@ async fn test_rated_demon_gives_both_scores(pool: Pool<Postgres>) {
         .get_success_result()
         .await;
 
-    assert_ne!(player.player.score, 0.0f64, "Rated demon failed to give verifier a rated+ score");
     assert_ne!(
-        player.player.rated_score, 0.0f64,
+        player.player.score.unwrap(),
+        0.0f64,
+        "Rated demon failed to give verifier a rated+ score"
+    );
+    assert_ne!(
+        player.player.rated_score.unwrap(),
+        0.0f64,
         "Rated demon failed to give verifier a demonlist score"
     );
 }
@@ -281,7 +294,7 @@ async fn test_patch_demon_to_unrated_removes_demonlist_score(pool: Pool<Postgres
         .get_success_result()
         .await;
 
-    assert_ne!(player.player.rated_score, 0.0f64);
+    assert_ne!(player.player.rated_score.unwrap(), 0.0f64);
 
     let full: FullDemon = clnt
         .get(format!("/api/v2/demons/{}/", demon.demon.base.id))
@@ -317,11 +330,12 @@ async fn test_patch_demon_to_unrated_removes_demonlist_score(pool: Pool<Postgres
         .await;
 
     assert_eq!(
-        player.player.rated_score, 0.0f64,
+        player.player.rated_score, None,
         "Unrating demon failed to remove the verifier's demonlist score"
     );
     assert_ne!(
-        player.player.score, 0.0f64,
+        player.player.score.unwrap(),
+        0.0f64,
         "Unrating demon wrongly removed the verifier's rated+ score"
     );
 }
@@ -440,11 +454,13 @@ async fn test_progress_record_respects_each_lists_own_main_list(pool: Pool<Postg
         .await;
 
     assert_ne!(
-        player.player.rated_score, 0.0f64,
+        player.player.rated_score.unwrap(),
+        0.0f64,
         "Progress record on a demonlist main-list demon failed to give demonlist score"
     );
     assert_eq!(
-        player.player.score, 0.0f64,
+        player.player.score,
+        Some(0.0f64),
         "Progress record on a rated+ extended-list demon wrongly gave rated+ score"
     );
 }
@@ -707,19 +723,22 @@ async fn test_full_and_incremental_score_paths_agree(pool: Pool<Postgres>) {
         .await
         .unwrap();
 
+    let (full_score, incremental_score) = (full.score.unwrap(), incremental.score.unwrap());
+    let (full_ratedplus_score, incremental_ratedplus_score) = (full.ratedplus_score.unwrap(), incremental.ratedplus_score.unwrap());
+
     assert!(
-        (full.score - incremental.score).abs() < 1e-9,
+        (full_score - incremental_score).abs() < 1e-9,
         "demonlist score drifts between recompute_scores ({}) and update_score ({})",
-        full.score,
-        incremental.score
+        full_score,
+        incremental_score
     );
     assert!(
-        (full.ratedplus_score - incremental.ratedplus_score).abs() < 1e-9,
+        (full_ratedplus_score - incremental_ratedplus_score).abs() < 1e-9,
         "rated+ score drifts between recompute_scores ({}) and update_score ({})",
-        full.ratedplus_score,
-        incremental.ratedplus_score
+        full_ratedplus_score,
+        incremental_ratedplus_score
     );
-    assert!(full.score > 0.0 && full.ratedplus_score > 0.0);
+    assert!(full_score > 0.0 && full_ratedplus_score > 0.0);
 }
 
 #[test]
@@ -956,7 +975,11 @@ async fn test_raising_requirement_updates_player_scores(pool: Pool<Postgres>) {
         .expect_status(Status::Ok)
         .get_success_result()
         .await;
-    assert_ne!(before.player.rated_score, 0.0f64, "sanity: the 50% record should give the holder a demonlist score");
+    assert_ne!(
+        before.player.rated_score.unwrap(),
+        0.0f64,
+        "sanity: the 50% record should give the holder a demonlist score"
+    );
 
     let full: FullDemon = clnt
         .get(format!("/api/v2/demons/{}/", demon_id))
@@ -976,12 +999,12 @@ async fn test_raising_requirement_updates_player_scores(pool: Pool<Postgres>) {
         .get_success_result()
         .await;
     assert_eq!(
-        after.player.rated_score, 0.0f64,
-        "raising the requirement deleted the holder's only record, so their demonlist score must drop to 0"
+        after.player.rated_score, None,
+        "raising the requirement deleted the holder's only record, so their demonlist score must be removed"
     );
     assert_eq!(
-        after.player.score, 0.0f64,
-        "raising the requirement deleted the holder's only record, so their rated+ score must drop to 0"
+        after.player.score, None,
+        "raising the requirement deleted the holder's only record, so their rated+ score must be removed"
     );
 }
 
@@ -1605,4 +1628,293 @@ async fn test_heatmap_css_includes_subdivision_rules_per_list(pool: Pool<Postgre
         "Rated+ heatmap missing subdivision scored by an unrated demon: {}",
         ratedplus_css
     );
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn test_player_without_records_has_no_scores(pool: Pool<Postgres>) {
+    let (clnt, mut connection) = pointercrate_test::demonlist::setup_rocket(pool).await;
+
+    let verifier = DatabasePlayer::by_name_or_create("stardust1971", &mut connection).await.unwrap();
+    let scoreless = DatabasePlayer::by_name_or_create("scoreless", &mut connection).await.unwrap();
+
+    add_demon("Bloodbath", 1, 100, verifier.id, verifier.id, true, &mut connection).await;
+    recompute_rated_positions(&mut connection).await.unwrap();
+    recompute_scores(&mut connection).await.unwrap();
+
+    let player: FullPlayer = clnt
+        .get(format!("/api/v1/players/{}/", scoreless.id))
+        .expect_status(Status::Ok)
+        .get_success_result()
+        .await;
+
+    assert_eq!(player.player.rated_score, None);
+    assert_eq!(player.player.score, None);
+    assert_eq!(player.player.rated_rank, None);
+    assert_eq!(player.player.rank, None);
+
+    let (demonlist_ranking, _) = clnt
+        .get("/api/v1/players/ranking/?list=demonlist")
+        .get_pagination_result::<serde_json::Value>()
+        .await;
+    let (ratedplus_ranking, _) = clnt
+        .get("/api/v1/players/ranking/?list=ratedplus")
+        .get_pagination_result::<serde_json::Value>()
+        .await;
+
+    assert!(!ranking_contains(&demonlist_ranking, "scoreless"));
+    assert!(!ranking_contains(&ratedplus_ranking, "scoreless"));
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn test_newly_created_player_has_no_scores(pool: Pool<Postgres>) {
+    let (_clnt, mut connection) = pointercrate_test::demonlist::setup_rocket(pool).await;
+
+    let player = DatabasePlayer::by_name_or_create("stardust1971", &mut connection).await.unwrap();
+
+    let row = sqlx::query!("SELECT score, ratedplus_score FROM players WHERE id = $1", player.id)
+        .fetch_one(&mut *connection)
+        .await
+        .unwrap();
+
+    assert_eq!(row.score, None);
+    assert_eq!(row.ratedplus_score, None);
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn test_legacy_record_lists_player_with_zero_score_on_both_lists(pool: Pool<Postgres>) {
+    let (clnt, mut connection) = pointercrate_test::demonlist::setup_rocket(pool).await;
+
+    let verifier = DatabasePlayer::by_name_or_create("stardust1971", &mut connection).await.unwrap();
+    let holder = DatabasePlayer::by_name_or_create("legacy_holder", &mut connection).await.unwrap();
+
+    let mut legacy = 0;
+    for position in 1..=151 {
+        legacy = add_demon(
+            format!("Demon {}", position),
+            position,
+            50,
+            verifier.id,
+            verifier.id,
+            true,
+            &mut connection,
+        )
+        .await;
+    }
+    recompute_rated_positions(&mut connection).await.unwrap();
+
+    add_simple_record(100, holder.id, legacy, RecordStatus::Approved, &mut connection).await;
+    recompute_scores(&mut connection).await.unwrap();
+
+    let player: FullPlayer = clnt
+        .get(format!("/api/v1/players/{}/", holder.id))
+        .expect_status(Status::Ok)
+        .get_success_result()
+        .await;
+
+    assert_eq!(player.player.rated_score, Some(0.0f64));
+    assert_eq!(player.player.score, Some(0.0f64));
+    assert_eq!(player.player.rated_rank, None);
+    assert_eq!(player.player.rank, None);
+
+    let (demonlist_ranking, _) = clnt
+        .get("/api/v1/players/ranking/?list=demonlist")
+        .get_pagination_result::<serde_json::Value>()
+        .await;
+    let (ratedplus_ranking, _) = clnt
+        .get("/api/v1/players/ranking/?list=ratedplus")
+        .get_pagination_result::<serde_json::Value>()
+        .await;
+
+    assert!(ranking_contains(&demonlist_ranking, "legacy_holder"));
+    assert!(ranking_contains(&ratedplus_ranking, "legacy_holder"));
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn test_zero_score_players_listed_unranked_below_scoring_players(pool: Pool<Postgres>) {
+    let (clnt, mut connection) = pointercrate_test::demonlist::setup_rocket(pool).await;
+
+    let verifier = DatabasePlayer::by_name_or_create("stardust1971", &mut connection).await.unwrap();
+    let scoring = DatabasePlayer::by_name_or_create("scoring_holder", &mut connection).await.unwrap();
+    let zero = DatabasePlayer::by_name_or_create("zero_holder", &mut connection).await.unwrap();
+
+    let mut demons = Vec::new();
+    for position in 1..=76 {
+        demons.push(
+            add_demon(
+                format!("Demon {}", position),
+                position,
+                50,
+                verifier.id,
+                verifier.id,
+                true,
+                &mut connection,
+            )
+            .await,
+        );
+    }
+    recompute_rated_positions(&mut connection).await.unwrap();
+
+    add_simple_record(100, scoring.id, demons[0], RecordStatus::Approved, &mut connection).await;
+    add_simple_record(90, zero.id, demons[75], RecordStatus::Approved, &mut connection).await;
+    recompute_scores(&mut connection).await.unwrap();
+
+    for list in ["demonlist", "ratedplus"] {
+        let (ranking, _) = clnt
+            .get(format!("/api/v1/players/ranking/?list={}", list))
+            .get_pagination_result::<serde_json::Value>()
+            .await;
+
+        let scoring_entry = ranking.iter().find(|entry| entry["name"] == "scoring_holder").unwrap();
+        let zero_entry = ranking
+            .iter()
+            .find(|entry| entry["name"] == "zero_holder")
+            .unwrap_or_else(|| panic!("zero score player missing from {} ranking: {:?}", list, ranking));
+
+        assert_eq!(zero_entry["score"].as_f64(), Some(0.0f64), "{}", zero_entry);
+        assert!(zero_entry["rank"].is_null(), "zero score player was given a rank on {}: {}", list, zero_entry);
+        assert_eq!(scoring_entry["rank"].as_i64(), Some(2), "{}", scoring_entry);
+        assert_eq!(
+            ranking.last().unwrap()["name"],
+            "zero_holder",
+            "zero score player is not last on {}: {:?}",
+            list,
+            ranking
+        );
+    }
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn test_unrated_only_holder_has_no_demonlist_score(pool: Pool<Postgres>) {
+    let (clnt, mut connection) = pointercrate_test::demonlist::setup_rocket(pool).await;
+
+    let verifier = DatabasePlayer::by_name_or_create("stardust1971", &mut connection).await.unwrap();
+    let holder = DatabasePlayer::by_name_or_create("unrated_holder", &mut connection).await.unwrap();
+
+    let unrated = add_demon("Bloodlust", 1, 100, verifier.id, verifier.id, false, &mut connection).await;
+    recompute_rated_positions(&mut connection).await.unwrap();
+
+    add_simple_record(100, holder.id, unrated, RecordStatus::Approved, &mut connection).await;
+    recompute_scores(&mut connection).await.unwrap();
+
+    let player: FullPlayer = clnt
+        .get(format!("/api/v1/players/{}/", holder.id))
+        .expect_status(Status::Ok)
+        .get_success_result()
+        .await;
+
+    assert_eq!(player.player.rated_score, None);
+    assert_eq!(player.player.rated_rank, None);
+    assert_ne!(player.player.score.unwrap(), 0.0f64);
+    assert!(player.player.rank.is_some());
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn test_update_score_distinguishes_missing_and_zero_score(pool: Pool<Postgres>) {
+    let (_clnt, mut connection) = pointercrate_test::demonlist::setup_rocket(pool).await;
+
+    let verifier = DatabasePlayer::by_name_or_create("stardust1971", &mut connection).await.unwrap();
+    let holder = DatabasePlayer::by_name_or_create("holder", &mut connection).await.unwrap();
+    let scoreless = DatabasePlayer::by_name_or_create("scoreless", &mut connection).await.unwrap();
+
+    let mut demons = Vec::new();
+    for position in 1..=77 {
+        demons.push(
+            add_demon(
+                format!("Demon {}", position),
+                position,
+                50,
+                verifier.id,
+                verifier.id,
+                position != 1,
+                &mut connection,
+            )
+            .await,
+        );
+    }
+    recompute_rated_positions(&mut connection).await.unwrap();
+
+    let record = add_simple_record(90, holder.id, demons[76], RecordStatus::Approved, &mut connection).await;
+
+    assert_eq!(
+        holder.update_score(&mut connection).await.unwrap(),
+        (Some(0.0f64), Some(0.0f64)),
+        "progress record outside the main list of both lists must give a score of zero, not no score"
+    );
+    assert_eq!(scoreless.update_score(&mut connection).await.unwrap(), (None, None));
+
+    sqlx::query!("DELETE FROM records WHERE id = $1", record)
+        .execute(&mut *connection)
+        .await
+        .unwrap();
+
+    assert_eq!(holder.update_score(&mut connection).await.unwrap(), (None, None));
+
+    add_simple_record(100, holder.id, demons[0], RecordStatus::Approved, &mut connection).await;
+
+    let (rated_score, ratedplus_score) = holder.update_score(&mut connection).await.unwrap();
+    assert_eq!(rated_score, None, "record on an unrated demon gave a demonlist score");
+    assert_ne!(ratedplus_score.unwrap(), 0.0f64);
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn test_ranking_pagination_continues_into_unranked_players(pool: Pool<Postgres>) {
+    let (clnt, mut connection) = pointercrate_test::demonlist::setup_rocket(pool).await;
+
+    let verifier = DatabasePlayer::by_name_or_create("stardust1971", &mut connection).await.unwrap();
+    let scoring = DatabasePlayer::by_name_or_create("scoring_holder", &mut connection).await.unwrap();
+    let zero_a = DatabasePlayer::by_name_or_create("zero_holder_a", &mut connection).await.unwrap();
+    let zero_b = DatabasePlayer::by_name_or_create("zero_holder_b", &mut connection).await.unwrap();
+    DatabasePlayer::by_name_or_create("scoreless", &mut connection).await.unwrap();
+
+    let mut demons = Vec::new();
+    for position in 1..=76 {
+        demons.push(
+            add_demon(
+                format!("Demon {}", position),
+                position,
+                50,
+                verifier.id,
+                verifier.id,
+                true,
+                &mut connection,
+            )
+            .await,
+        );
+    }
+    recompute_rated_positions(&mut connection).await.unwrap();
+
+    add_simple_record(90, zero_b.id, demons[75], RecordStatus::Approved, &mut connection).await;
+    add_simple_record(100, scoring.id, demons[0], RecordStatus::Approved, &mut connection).await;
+    add_simple_record(90, zero_a.id, demons[75], RecordStatus::Approved, &mut connection).await;
+    recompute_scores(&mut connection).await.unwrap();
+
+    for list in ["demonlist", "ratedplus"] {
+        let mut entries = Vec::new();
+        let mut after = 0;
+
+        loop {
+            let (page, links) = clnt
+                .get(format!("/api/v1/players/ranking/?list={}&limit=1&after={}", list, after))
+                .get_pagination_result::<serde_json::Value>()
+                .await;
+
+            entries.extend(page);
+
+            match link_param(&links, "next", "after") {
+                Some(next) if entries.len() < 10 => after = next,
+                _ => break,
+            }
+        }
+
+        let names: Vec<_> = entries.iter().map(|entry| entry["name"].as_str().unwrap()).collect();
+        let ranks: Vec<_> = entries.iter().map(|entry| entry["rank"].as_i64()).collect();
+
+        assert_eq!(
+            names,
+            vec!["stardust1971", "scoring_holder", "zero_holder_a", "zero_holder_b"],
+            "unexpected {} ranking order",
+            list
+        );
+        assert_eq!(ranks, vec![Some(1), Some(2), None, None], "unexpected {} ranks", list);
+    }
 }

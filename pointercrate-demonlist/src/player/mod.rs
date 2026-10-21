@@ -59,8 +59,8 @@ pub struct Player {
     /// - Player updates
     ///   * Player banned
     ///   * Player objects merged
-    pub rated_score: f64,
-    pub score: f64,
+    pub rated_score: Option<f64>,
+    pub score: Option<f64>,
     pub rated_rank: Option<i64>,
     pub rank: Option<i64>,
     pub nationality: Option<Nationality>,
@@ -71,7 +71,7 @@ pub struct Player {
 impl Hash for Player {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.base.hash(state);
-        ((self.score * 100f64) as u64).hash(state);
+        self.score.map(|score| (score * 100f64) as u64).hash(state);
         self.nationality.hash(state);
     }
 }
@@ -86,10 +86,10 @@ impl Taggable for FullPlayer {
 
 impl DatabasePlayer {
     /// Recomputes this player's score and updates it in the database.
-    pub async fn update_score(&self, connection: &mut PgConnection) -> Result<(f64, f64), CoreError> {
+    pub async fn update_score(&self, connection: &mut PgConnection) -> Result<(Option<f64>, Option<f64>), CoreError> {
         // No need to specially handle banned players - they have no approved records, so `score_of_player` will return 0
         let new_scores = sqlx::query!(
-            "UPDATE players SET score = coalesce(score_of_player(true, $1), 0), ratedplus_score = coalesce(score_of_player(false, $1), 0) WHERE id = $1 RETURNING score, ratedplus_score",
+            "UPDATE players SET score = score_of_player(true, $1), ratedplus_score = score_of_player(false, $1) WHERE id = $1 RETURNING score, ratedplus_score",
             self.id
         )
         .fetch_one(&mut *connection)

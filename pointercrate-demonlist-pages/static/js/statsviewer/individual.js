@@ -30,7 +30,7 @@ class IndividualStatsViewer extends StatsViewer {
     const demonPositionKey = window.active_list == "demonlist" ? "rated_position" : "position";
 
     this._rank.innerText = playerData[rankKey] || "-";
-    this._score.innerText = playerData[scoreKey].toFixed(2);
+    this._score.innerText = playerData[scoreKey]?.toFixed(2) ?? "-";
 
     this.setName(playerData.name, playerData.nationality);
 
@@ -278,7 +278,9 @@ function generateStatsViewerPlayer(player) {
   li.className = "white hover";
   li.dataset.id = player.id;
 
-  b.appendChild(document.createTextNode("#" + player.rank + " "));
+  if (player.rank) {
+    b.appendChild(document.createTextNode("#" + player.rank + " "));
+  }
   i.appendChild(document.createTextNode(player.score.toFixed(2)));
 
   if (player.nationality) {

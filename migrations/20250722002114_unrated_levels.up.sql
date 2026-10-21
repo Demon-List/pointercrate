@@ -1,5 +1,7 @@
 ALTER TABLE demons ADD COLUMN rated BOOLEAN NOT NULL DEFAULT TRUE;
-ALTER TABLE players ADD COLUMN ratedplus_score DOUBLE PRECISION NOT NULL DEFAULT 0.0;
+ALTER TABLE players ALTER COLUMN score DROP NOT NULL;
+ALTER TABLE players ALTER COLUMN score DROP DEFAULT;
+ALTER TABLE players ADD COLUMN ratedplus_score DOUBLE PRECISION DEFAULT NULL;
 ALTER TABLE nationalities ADD COLUMN ratedplus_score DOUBLE PRECISION NOT NULL DEFAULT 0.0;
 ALTER TABLE subdivisions ADD COLUMN ratedplus_score DOUBLE PRECISION NOT NULL DEFAULT 0.0;
 
@@ -27,6 +29,47 @@ $$ LANGUAGE plpgsql;
 SELECT recompute_rated_positions();
 
 -- stats viewer stuff
+CREATE OR REPLACE FUNCTION record_score(progress FLOAT, demon FLOAT, list_size FLOAT, requirement FLOAT) RETURNS FLOAT AS
+$record_score$
+SELECT CASE
+           WHEN demon > 150 THEN 0.0
+           WHEN demon > 75 AND progress < 100 THEN 0.0
+           WHEN progress = 100 THEN
+                   CASE
+                       WHEN demon BETWEEN 56 AND 150 THEN
+                            1.039035131 * ((185.7 * EXP((-0.02715 * demon))) + 14.84)
+                       WHEN demon BETWEEN 36 AND 55 THEN
+                            1.0371139743 * ((212.61 * POWER(1.036, 1 - demon)) + 25.071)
+                       WHEN demon BETWEEN 21 AND 35 THEN
+                            (((250 - 83.389) * POWER(1.0099685, 2 - demon) - 31.152)) * 1.0371139743
+                       WHEN demon BETWEEN 4 AND 20 THEN
+                            ((326.1 * EXP((-0.0871 * demon))) + 51.09) * 1.037117142
+                       WHEN demon BETWEEN 1 AND 3 THEN
+                            (-18.2899079915 * demon) + 368.2899079915
+                       ELSE
+                            0.0
+                   END
+           WHEN progress < requirement THEN
+               0.0
+           ELSE
+               CASE
+                   WHEN demon BETWEEN 56 AND 150 THEN
+                        1.039035131 * ((185.7 * EXP((-0.02715 * demon))) + 14.84) * (EXP(LN(5) * (progress - requirement) / (100 - requirement))) / 10
+                   WHEN demon BETWEEN 36 AND 55 THEN
+                        (1.0371139743 * ((212.61 * POWER(1.036, 1 - demon)) + 25.071)) * (EXP(LN(5) * (progress - requirement) / (100 - requirement))) / 10
+                   WHEN demon BETWEEN 21 AND 35 THEN
+                        (((250 - 83.389) * POWER(1.0099685, 2 - demon) - 31.152)) * 1.0371139743 * (EXP(LN(5) * (progress - requirement) / (100 - requirement))) / 10
+                   WHEN demon BETWEEN 4 AND 20 THEN
+                        (((326.1 * EXP((-0.0871 * demon))) + 51.09) * 1.037117142) * (EXP(LN(5) * (progress - requirement) / (100 - requirement))) / 10
+                   WHEN demon BETWEEN 1 AND 3 THEN
+                        ((-18.2899079915 * demon) + 368.2899079915) * (EXP(LN(5) * (progress - requirement) / (100 - requirement))) / 10
+                   ELSE
+                        0.0
+               END
+           END;
+$record_score$
+     LANGUAGE SQL IMMUTABLE;
+
 DROP VIEW score_giving;
 
 CREATE VIEW score_giving AS
@@ -34,7 +77,7 @@ CREATE VIEW score_giving AS
     FROM records
     INNER JOIN demons
     ON demons.id = records.demon
-    WHERE records.status_ = 'APPROVED' AND (demons.position <= 75 OR records.progress = 100)
+    WHERE records.status_ = 'APPROVED'
 
 	UNION
 
@@ -42,7 +85,7 @@ CREATE VIEW score_giving AS
     FROM records
     INNER JOIN demons
     ON demons.id = records.demon
-    WHERE demons.rated = TRUE AND records.status_ = 'APPROVED' AND (demons.rated_position <= 75 OR records.progress = 100)
+    WHERE demons.rated = TRUE AND records.status_ = 'APPROVED'
 
     UNION
 
@@ -65,7 +108,7 @@ $$ LANGUAGE SQL;
 
 CREATE OR REPLACE FUNCTION recompute_player_scores() RETURNS void AS $$
     UPDATE players
-    SET score = COALESCE(q.score, 0), ratedplus_score = COALESCE(q.ratedplus_score, 0)
+    SET score = q.score, ratedplus_score = q.ratedplus_score
     FROM players p
     LEFT JOIN (
         SELECT player,
@@ -159,18 +202,18 @@ DROP MATERIALIZED VIEW player_ranks;
 
 CREATE MATERIALIZED VIEW player_ranks AS
 SELECT
-    CASE WHEN score != 0 THEN RANK() OVER (ORDER BY score DESC) END AS rank,
-    CASE WHEN ratedplus_score != 0 THEN RANK() OVER (ORDER BY ratedplus_score DESC) END AS ratedplus_rank,
+    CASE WHEN score > 0 THEN RANK() OVER (ORDER BY score DESC NULLS LAST) END AS rank,
+    CASE WHEN ratedplus_score > 0 THEN RANK() OVER (ORDER BY ratedplus_score DESC NULLS LAST) END AS ratedplus_rank,
     id
 FROM players
-WHERE (ratedplus_score != 0 OR score != 0) AND NOT banned;
+WHERE (ratedplus_score IS NOT NULL OR score IS NOT NULL) AND NOT banned;
 
 CREATE UNIQUE INDEX player_ranks_id_idx ON player_ranks(id);
 
 CREATE VIEW ranked_players AS
 SELECT
-    ROW_NUMBER() OVER(ORDER BY rank, id) AS index,
-    ROW_NUMBER() OVER (ORDER BY ratedplus_rank, id) AS ratedplus_index,
+    ROW_NUMBER() OVER(ORDER BY players.score DESC NULLS LAST, id) AS index,
+    ROW_NUMBER() OVER (ORDER BY players.ratedplus_score DESC NULLS LAST, id) AS ratedplus_index,
     rank,
     ratedplus_rank,
     id, name, players.score, players.ratedplus_score,
