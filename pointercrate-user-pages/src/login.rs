@@ -1,5 +1,8 @@
 use maud::{html, Markup};
-use pointercrate_core::localization::{task_lang, tr};
+use pointercrate_core::{
+    localization::{task_lang, tr},
+    theme::task_theme,
+};
 use pointercrate_core_pages::{head::HeadLike, trp_html, PageFragment};
 use pointercrate_user::config;
 
@@ -38,7 +41,7 @@ fn login_page_body() -> Markup {
                             data-callback="googleOauthCallback" {}
 
                         script src=(format!("https://accounts.google.com/gsi/client?hl={}", &lang)) defer {}
-                        div .g_id_signin data-text="continue_with" style="margin: 10px 0px" data-locale=(lang) {}
+                        div .g_id_signin data-text="continue_with" data-theme=(task_theme().as_gsi_theme()) style="margin: 10px 0px" data-locale=(lang) {}
                         p.error #g-signin-error style="text-align: left" {}
 
                         p.or style="text-size: small; margin: 0px" { (tr("login.methods-separator")) }

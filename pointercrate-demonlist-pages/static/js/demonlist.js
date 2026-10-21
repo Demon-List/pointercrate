@@ -4,6 +4,7 @@ import {
 } from "/static/demonlist/js/modules/demonlist.js";
 import { get } from "/static/core/js/modules/form.js";
 import { tr, trp } from "/static/core/js/modules/localization.js";
+import { ThemedElement } from "/static/core/js/modules/theme.js";
 
 $(window).on("load", function () {
   if (window.demon_id) {
@@ -13,10 +14,23 @@ $(window).on("load", function () {
 
   initializeRecordSubmitter();
   initializeTimeMachine();
+
+  new ThemedElement(
+    document.querySelector("#discord > iframe"),
+    (iframe, theme) => {
+      let src = iframe.src || iframe.dataset.attrValue;
+
+      let url = new URL(src);
+      url.searchParams.set("theme", theme);
+
+      if (iframe.src) iframe.src = url;
+      iframe.dataset.attrValue = url;
+    },
+  )
 });
 
 function initializeHistoryTable() {
-  get("/api/v2/demons/" + window.demon_id + "/audit/movement/").then(
+  get("/api/v2/demons/" + window.demon_id + "/audit/movement/?list=" + window.active_list).then(
     (response) => {
       let data = response.data;
       let tableBody = document.getElementById("history-table-body");
@@ -39,7 +53,7 @@ function initializeHistoryTable() {
 
         let positionChange = entry["new_position"] - lastPosition;
 
-        if (lastPosition !== null) {
+        if (lastPosition !== null && entry["reason"] !== "Unrated") {
           let arrow = document.createElement("i");
 
           if (positionChange < 0) {
@@ -81,6 +95,11 @@ function initializeHistoryTable() {
           reason = tr("demonlist", "demon", "movements-reason.added");
         } else if (entry["reason"] === "Moved") {
           reason = tr("demonlist", "demon", "movements-reason.moved");
+        } else if (entry["reason"] === "Rated") {
+          reason = tr("demonlist", "demon", "movements-reason.rated");
+        } else if (entry["reason"] === "Unrated") {
+          reason = tr("demonlist", "demon", "movements-reason.unrated");
+          newRow.classList.add("moved-down");
         } else {
           if (entry["reason"]["OtherAddedAbove"] !== undefined) {
             let other = entry["reason"]["OtherAddedAbove"]["other"];
@@ -101,6 +120,20 @@ function initializeHistoryTable() {
                 : trp("demonlist", "demon", "movements-reason.movedabove", {
                     ["demon"]: name,
                   });
+          } else if (entry["reason"]["OtherRated"] !== undefined) {
+            let other = entry["reason"]["OtherRated"]["other"];
+            let name = other.name === null ? "A demon" : other["name"];
+
+            reason = trp("demonlist", "demon", "movements-reason.otherrated", {
+              ["demon"]: name,
+            });
+          } else if (entry["reason"]["OtherUnrated"] !== undefined) {
+            let other = entry["reason"]["OtherUnrated"]["other"];
+            let name = other.name === null ? "A demon" : other["name"];
+
+            reason = trp("demonlist", "demon", "movements-reason.otherunrated", {
+              ["demon"]: name,
+            });
           }
         }
 

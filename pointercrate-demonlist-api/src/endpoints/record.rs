@@ -219,7 +219,7 @@ pub async fn patch(
 ) -> Result<Tagged<FullRecord>> {
     let record = FullRecord::by_id(record_id, &mut auth.connection).await?;
 
-    if record.demon.position > pointercrate_demonlist::config::extended_list_size() {
+    if record.demon.position > pointercrate_demonlist::config::extended_list_size() + 10 {
         auth.require_permission(LIST_MODERATOR)?;
     } else {
         auth.require_permission(LIST_HELPER)?;

@@ -3,6 +3,7 @@ use maud::{html, Markup, PreEscaped};
 use pointercrate_core::{
     localization::{task_lang, tr},
     permission::PermissionsManager,
+    theme::task_theme,
     trp,
 };
 use pointercrate_user::{
@@ -21,6 +22,17 @@ impl AccountPageTab for ProfileTab {
 
     fn initialization_script(&self) -> String {
         "/static/user/js/account/profile.js".into()
+    }
+
+    fn additional_scripts(&self) -> Vec<Script> {
+        if cfg!(feature = "oauth2") {
+            vec![
+                Script::r#async("https://accounts.google.com/gsi/client"),
+                Script::module("/static/user/js/gsi-theme.js"),
+            ]
+        } else {
+            Vec::new()
+        }
     }
 
     fn tab_id(&self) -> u8 {
@@ -139,7 +151,7 @@ impl AccountPageTab for ProfileTab {
                             data-callback="googleOauthCallback" {}
 
                         script src=(format!("https://accounts.google.com/gsi/client?hl={}", &lang)) defer {}
-                        div .g_id_signin data-text="continue_with" style="margin: 10px 0px" data-locale=(lang) {}
+                        div .g_id_signin data-text="continue_with" data-theme=(task_theme().as_gsi_theme()) style="margin: 10px 0px" data-locale=(lang) {}
                         p.error #g-signin-error style="text-align: left" {}
                     }
                 }

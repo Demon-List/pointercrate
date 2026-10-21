@@ -1,6 +1,7 @@
 use maud::{html, Markup};
 use pointercrate_core::localization::task_lang;
 use pointercrate_core::localization::tr;
+use pointercrate_core::theme::task_theme;
 use pointercrate_core_pages::head::HeadLike;
 use pointercrate_core_pages::{trp_html, PageFragment};
 use pointercrate_user::config;
@@ -36,7 +37,7 @@ fn register_page_body() -> Markup {
                             data-callback="googleOauthRegisterCallback" {}
 
                         script src=(format!("https://accounts.google.com/gsi/client?hl={}", &lang)) defer {}
-                        div .g_id_signin data-text="signup_with" style="margin: 10px 0px" {}
+                        div .g_id_signin data-text="signup_with" data-theme=(task_theme().as_gsi_theme()) style="margin: 10px 0px" {}
                         @if cfg!(feature = "legacy_accounts") {
                             p.or style="text-size: small; margin: 0px" { (tr("login.methods-separator")) }
                         }

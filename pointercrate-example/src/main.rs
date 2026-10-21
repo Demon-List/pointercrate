@@ -1,9 +1,11 @@
 use maud::html;
 use pointercrate_core::localization::LocalesLoader;
 use pointercrate_core::pool::PointercratePool;
+use pointercrate_core::theme::Theme;
 use pointercrate_core::{error::CoreError, localization::tr};
 use pointercrate_core_api::{error::ErrorResponder, maintenance::MaintenanceFairing, preferences::PreferenceManager};
 use pointercrate_core_macros::localized_catcher;
+use pointercrate_core_pages::navigation::NavigationBarLogo;
 use pointercrate_core_pages::{
     footer::{Footer, FooterColumn, Link},
     navigation::{NavigationBar, TopLevelNavigationBarItem},
@@ -133,7 +135,9 @@ async fn rocket() -> _ {
 
     // Define the preferences our website supports. Preferences are sent to us from
     // the client via cookies.
-    let preference_manager = PreferenceManager::default().with_localization();
+    let preference_manager = PreferenceManager::default()
+        .with_localization()
+        .preference(Theme::cookie_name(), Theme::default().to_string());
 
     let rocket = rocket.manage(preference_manager);
 
@@ -193,14 +197,27 @@ async fn rocket() -> _ {
 fn page_configuration() -> PageConfiguration {
     // Define a navigation bar with only two items, a link to the user account page,
     // and a link to your demonlist.
-    let nav_bar = NavigationBar::new("/static/images/path/to/your/logo.png")
+    let nav_bar = NavigationBar::new(NavigationBarLogo::ImagePath("/static/images/path/to/your/logo.png"))
         .with_item(
             TopLevelNavigationBarItem::new(
-                Some("/demonlist/"),
-                // Pointercrate uses the "maud" create as its templating engine. 
+                Some("/ratedplus/"),
+                // Pointercrate uses the "maud" create as its templating engine.
                 // It allows you to describe HTML via Rust macros that allow you to dynamically generate content using
                 // a Rust-like syntax and by interpolating and Rust variables from surrounding scopes (as long as the
                 // implement the `Render` trait). See https://maud.lambda.xyz/ for details.
+                html! {
+                    span {
+                        (tr("nav-ratedplus"))
+                    }
+                },
+            )
+            .with_sub_item(Some("/ratedplus/statsviewer/"), html! { (tr("nav-ratedplus.stats-viewer")) })
+            .with_sub_item(Some("/ratedplus/?submitter=true"), html! { (tr("nav-ratedplus.record-submitter")) })
+            .with_sub_item(Some("/ratedplus/?timemachine=true"), html! { (tr("nav-ratedplus.time-machine")) }),
+        )
+        .with_item(
+            TopLevelNavigationBarItem::new(
+                Some("/demonlist/"),
                 html! {
                     span {
                         (tr("nav-demonlist"))
@@ -242,6 +259,20 @@ fn page_configuration() -> PageConfiguration {
             Link::new(
                 format!("/demonlist/{}/", pointercrate_demonlist::config::extended_list_size() + 1),
                 tr("footer-demonlist.legacy-list"),
+            ),
+        ],
+    })
+    .with_column(FooterColumn::LinkList {
+        heading: tr("footer-ratedplus"),
+        links: vec![
+            Link::new("/ratedplus/1/", tr("footer-ratedplus.top-demon")),
+            Link::new(
+                format!("/ratedplus/{}/", pointercrate_demonlist::config::list_size() + 1),
+                tr("footer-ratedplus.extended-list"),
+            ),
+            Link::new(
+                format!("/ratedplus/{}/", pointercrate_demonlist::config::extended_list_size() + 1),
+                tr("footer-ratedplus.legacy-list"),
             ),
         ],
     })

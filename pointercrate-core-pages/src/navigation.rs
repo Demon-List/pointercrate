@@ -26,14 +26,19 @@ struct NavigationBarItem {
     link: Option<&'static str>,
 }
 
+pub enum NavigationBarLogo {
+    ImagePath(&'static str),
+    Markup(Markup),
+}
+
 pub struct NavigationBar {
-    logo_path: &'static str,
+    logo: NavigationBarLogo,
     items: Vec<TopLevelNavigationBarItem>,
 }
 
 impl NavigationBar {
-    pub fn new(logo_path: &'static str) -> Self {
-        NavigationBar { logo_path, items: vec![] }
+    pub fn new(logo: NavigationBarLogo) -> Self {
+        NavigationBar { logo, items: vec![] }
     }
 
     pub fn with_item(mut self, item: TopLevelNavigationBarItem) -> Self {
@@ -97,7 +102,12 @@ impl Render for NavigationBar {
                 nav.center.collapse.underlined.see-through {
                     div.nav-icon.nav-nohide style = "margin-right: auto" {
                         a href = "/" aria-label = "Go to homepage" {
-                            img src = (self.logo_path) style="height:15px" alt="Logo";
+                            @match &self.logo {
+                                NavigationBarLogo::ImagePath(path) => {
+                                    img.logo src = (path) alt="Logo";
+                                },
+                                NavigationBarLogo::Markup(markup) => (markup)
+                            }
                         }
                     }
                     @for item in &self.items {
@@ -106,6 +116,16 @@ impl Render for NavigationBar {
                     @if let Some(locales_dropdown) = locale_selection_dropdown() {
                         (locales_dropdown)
                     }
+                    (NavGroup { // light-dark theme toggle
+                        inner: TopLevelNavigationBarItem::new(
+                            None,
+                            html! {
+                                span.fa {}
+                            }
+                        ),
+                        id: Some("theme-toggle"),
+                        nohide: true,
+                    })
                     div.nav-item.collapse-button.nav-nohide {
                         div.hamburger.hover {
                             input type="checkbox"{}

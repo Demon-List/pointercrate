@@ -112,6 +112,32 @@ impl AccountPageTab for DemonsTab {
                                         span #demon-verifier {}
                                     }
                                 }
+                                div.stats-container.flex.space {
+                                    span {
+                                        b { (tr("demon-viewer.rated-field")) }
+                                        br;
+                                        div.dropdown-menu.js-search #edit-demon-rated style = "max-width: 120px" {
+                                            div {
+                                                input type = "text" style = "font-weight: bold" {}
+                                            }
+                                            div.menu {
+                                                ul {
+                                                    li.white.hover data-value="true" { (tr("demon-rated.yes")) }
+                                                    li.white.hover data-value="false" { (tr("demon-rated.no")) }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                div.stats-container.flex.space  {
+                                    span{
+                                        b {
+                                            i.fa.fa-pencil-alt.clickable #demon-levelid-pen aria-hidden = "true" {} " " (tr("demon-viewer.levelid-field"))
+                                        }
+                                        br;
+                                        span #demon-levelid {}
+                                    }
+                                }
                                 div.stats-container.flex.space  {
                                     span{
                                         i.fa.fa-plus.clickable #demon-add-creator-pen aria-hidden = "true" {} b {
@@ -138,6 +164,7 @@ impl AccountPageTab for DemonsTab {
             (change_thumbnail_dialog())
             (change_verifier_dialog())
             (change_publisher_dialog())
+            (change_levelid_dialog())
             (add_creator_dialog())
         }
     }
@@ -317,6 +344,31 @@ fn change_publisher_dialog() -> Markup {
     )
 }
 
+fn change_levelid_dialog() -> Markup {
+    html! {
+        div.overlay.closable {
+            div.dialog #demon-levelid-dialog {
+                span.plus.cross.hover {}
+                h2.underlined.pad {
+                    (tr("demon-levelid-dialog"))
+                }
+                p style = "max-width: 400px"{
+                    (tr("demon-levelid-dialog.info"))
+                }
+                form.flex.col novalidate = "" {
+                    p.info-red.output {}
+                    p.info-green.output {}
+                    span.form-input #demon-levelid-edit {
+                        input name = "level_id" type = "number" min = "1";
+                        p.error {}
+                    }
+                    input.button.blue.hover type = "submit" style = "margin: 15px auto 0px;" value = (tr("demon-levelid-dialog.submit"));
+                }
+            }
+        }
+    }
+}
+
 fn add_creator_dialog() -> Markup {
     player_selection_dialog(
         "demon-add-creator-dialog",
@@ -385,6 +437,11 @@ fn demon_submitter() -> Markup {
                         }
                         input type = "url" name = "video";
                         p.error {}
+                    }
+                    span.form-input.flex.cb-container.no-stretch #demon-add-rated style = "margin-bottom:20px" {
+                        label for = "rated" { (tr("demon-add-form.rated-field")) }
+                        input type = "checkbox" name = "rated" checked {}
+                        span.checkmark {}
                     }
                     span {
                         i.fa.fa-plus.clickable #add-demon-add-creator-pen aria-hidden = "true" {} i {

@@ -46,6 +46,10 @@ demon-publisher = Публикатор
 demon-verifier = Верифер
     .validator-valuemissing = Пожалуйста, укажите верифера
 
+demon-rated = Оценен
+    .yes = Да (Оценен)
+    .no = Нет (Не оценен)
+
 demon-creators = Создатели
 
 demon-headline-by = от { $creator }
@@ -86,6 +90,10 @@ movements-reason = Причина
     .moved = Перемещён
     .movedabove = { $demon } был перемещён выше этого демона
     .movedbelow = { $demon } был перемещён ниже этого демона
+    .rated = Оценен
+    .unrated = Не оценен
+    .otherrated = { $demon } получил оценку
+    .otherunrated = { $demon } потерял оценку
 
 ## Records table
 demon-records = Рекорды
@@ -124,6 +132,7 @@ demon-viewer = Демон #
     .publisher-field = { demon-publisher }:
     .verifier-field = { demon-verifier }:
     .creators-field = { demon-creators }:
+    .levelid-field = { demon-id }:
 
 demon-add-panel = Добавление демона
     .button = Добавить демон!
@@ -181,6 +190,10 @@ demon-publisher-dialog = Изменение публикатора демона
 
 demon-verifier-dialog = Изменение верифера демона
     .info = Здесь проходит введение нового верифера демона через поле ниже. Если такой игрок уже существует, его имя появится в качестве предложения ниже поля ввода. После этого нажмите на кнопку ниже.
+    .submit = Изменить
+
+demon-levelid-dialog = Изменение ID уровня
+    .info = Оставьте пустой для удаления ID уровня.
     .submit = Изменить
 
 demon-creator-dialog = Добавление креатора

@@ -1,5 +1,5 @@
 use crate::{
-    demon::{Demon, FullDemon, MinimalDemon},
+    demon::{recompute_rated_positions, Demon, FullDemon, MinimalDemon},
     error::{DemonlistError, Result},
     player::{recompute_scores, DatabasePlayer},
 };
@@ -30,6 +30,12 @@ pub struct PatchDemon {
 
     #[serde(default, deserialize_with = "non_nullable")]
     pub publisher: Option<String>,
+
+    #[serde(default, deserialize_with = "non_nullable")]
+    pub rated: Option<bool>,
+
+    #[serde(default, deserialize_with = "nullable")]
+    pub level_id: Option<Option<i64>>,
 }
 
 impl FullDemon {
@@ -89,6 +95,14 @@ impl Demon {
             self.set_requirement(requirement, connection).await?;
         }
 
+        if let Some(rated) = patch.rated {
+            self.set_rated(rated, connection).await?;
+        }
+
+        if let Some(level_id) = patch.level_id {
+            self.set_level_id(level_id, connection).await?;
+        }
+
         Ok(self)
     }
 
@@ -130,10 +144,12 @@ impl Demon {
             .await?;
 
         sqlx::query!("UPDATE demons SET requirement = $1 WHERE id = $2", requirement, self.base.id)
-            .execute(connection)
+            .execute(&mut *connection)
             .await?;
 
         self.requirement = requirement;
+
+        recompute_scores(connection).await?;
 
         Ok(())
     }
@@ -166,6 +182,34 @@ impl Demon {
             .await?;
 
         self.thumbnail = thumbnail;
+
+        Ok(())
+    }
+
+    pub async fn set_rated(&mut self, rated: bool, connection: &mut PgConnection) -> Result<()> {
+        sqlx::query!("UPDATE demons SET rated = $1 WHERE id = $2", rated, self.base.id)
+            .execute(&mut *connection)
+            .await?;
+
+        self.rated = rated;
+
+        recompute_rated_positions(connection).await?;
+        recompute_scores(connection).await?;
+
+        Ok(())
+    }
+
+    pub async fn set_level_id(&mut self, level_id: Option<i64>, connection: &mut PgConnection) -> Result<()> {
+        let validated_level_id = match level_id {
+            Some(id) => Some(Demon::validate_level_id(id)?),
+            None => None,
+        };
+
+        sqlx::query!("UPDATE demons SET level_id = $1 WHERE id = $2", level_id, self.base.id)
+            .execute(connection)
+            .await?;
+
+        self.level_id = validated_level_id;
 
         Ok(())
     }
@@ -247,6 +291,7 @@ impl MinimalDemon {
 
         self.position = to;
 
+        recompute_rated_positions(&mut *connection).await?;
         recompute_scores(connection).await?;
 
         Ok(())
