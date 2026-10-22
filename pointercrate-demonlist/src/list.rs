@@ -27,7 +27,7 @@ impl List {
 
 impl Default for List {
     fn default() -> Self {
-        List::Demonlist
+        List::RatedPlus
     }
 }
 
