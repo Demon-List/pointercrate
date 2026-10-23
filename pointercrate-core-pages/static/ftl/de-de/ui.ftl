@@ -1,5 +1,5 @@
 edit-success = Bearbeitung erfolgreich!
-edit-notmodified = Keine Bearbeitung fand statt.
+edit-notmodified = Keine Bearbeitung vorgenommen.
 
 dropdown-placeholder = Klicke, um auszuwählen
 
