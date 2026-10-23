@@ -151,41 +151,41 @@ demon-add-form = Demon hinzufügen
 demon-video-dialog = Verifikationsvideo ändern
     .info = Ändere das Verifikationsvideo für diesen Rekord. Lasse das Feld leer um es zu entfernen.
     .video-field = Video link:
-    .submit = Bearbeite
+    .submit = Bearbeiten
 
 demon-name-dialog = Demon Namen ändern
     .info = Ändere den Demon Namen. Mehrere Demons mit den selben Namen SIND unterstützt!
     .name-field = Name:
-    .submit = Bearbeite
+    .submit = Bearbeiten
 
 demon-thumbnail-dialog = Thumbnail ändern
     .info = Ändere den Thumbnail Link für diesen Rekord. Um es auf ein Youtube-Thumbnail zu ändern, setze es zu { $video-id }.
     .info-videoid = VIDEO_ID
 
     .thumbnail-field = Thumbnail link:
-    .submit = Bearbeite
+    .submit = Bearbeiten
 
 demon-position-dialog = Position ändern
     .info = Ändere die Position vom Demon. Muss größer als 0 und mindestens so groß wie die zurzeitige Listengröße sein.
     .position-field = Position ({ list-ratedplus }):
-    .submit = Bearbeite
+    .submit = Bearbeiten
 
 demon-requirement-dialog = Mindestanforderung ändern
     .info = Ändere die Mindestanforderung für diesen Demon. Muss zwischen 0 und 100 (einschließlich) liegen.
     .requirement-field = Mindestanforderung:
-    .submit = Bearbeite
+    .submit = Bearbeiten
 
 demon-publisher-dialog = Veröffentlicher ändern
     .info = Schreibe den neuen Veröffentlicher in das untere Textfeld. Sollte der Spieler bereits existieren, so wird er dir vorgeschlagen und du kannst draufdrücken.
-    .submit = Bearbeite
+    .submit = Bearbeiten
 
 demon-verifier-dialog = Verifizierer ändern
     .info = Schreibe den neuen Verifizierer in das untere Textfeld. Sollte der Spieler bereits existieren, so wird er dir vorgeschlagen und du kannst draufdrücken.
-    .submit = Bearbeite
+    .submit = Bearbeiten
 
 demon-levelid-dialog = Level ID ändern
     .info = Leer lassen um die Level ID zu entfernen.
-    .submit = Bearbeite
+    .submit = Bearbeiten
 
 demon-creator-dialog = Ersteller hinzufügen
     .info = Schreibe den neuen Ersteller in das untere Textfeld. Sollte der Spieler bereits existieren, so wird er dir vorgeschlagen und du kannst draufdrücken.
