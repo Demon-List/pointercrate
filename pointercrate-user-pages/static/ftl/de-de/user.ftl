@@ -36,7 +36,7 @@ login = Einloggen
     .info = Logge dich mit Benutzername und Passwort ein. Loginversuche sind auf 3 alle 30 Minuten beschränkt.
     .submit = Einloggen
 
-    .error-invalidcredentials = Invalid credentials
+    .error-invalidcredentials = Falsche Login Daten
 
     .redirect = Hast du bereits ein Pointercrate Konto? { $redirect-link } stattdessen.
     .redirect-link = Einloggen
@@ -56,25 +56,25 @@ users = Benutzer
 
 user-viewer = Pointercrate Kontoverwaltung
     .welcome = Klicke auf einen User links um anzufangen!
-    .delete-user = Nutzer löschen
-    .edit-user = Nutzer bearbeiten
+    .delete-user = Benutzer löschen
+    .edit-user = Benutzer bearbeiten
 
-    .edit-success = Nutzer erfolgreich bearbeitet!
+    .edit-success = Benutzer erfolgreich bearbeitet!
     .edit-notmodified = Keine Änderungen vorgenommen!
-    .delete-success = Nutzer erfolgreich gelöscht!
+    .delete-success = Benutzer erfolgreich gelöscht!
 
     .own-account = Dies ist dein Konto. Du kannst dein eigenes Konto mithilfe diesem Dashboard nicht ändern!
 
 user-listed = ID: { $user-id }
     .displayname = Anzeigename:
 
-user-idsearch-panel = Nutzer suchen
-    .info = Nutzer können eindeutig durch Name und ID gefunden werden. Um ein Nutzerkonto zu ändern, brauchst du ihre ID. Kennst du weder noch, suche in der Liste unten!
-    .id-field = Nutzer ID:
+user-idsearch-panel = Benutzer suchen
+    .info = Benutzer können eindeutig durch Name und ID gefunden werden. Um ein Benutzerkonto zu ändern, brauchst du ihre ID. Kennst du weder noch, suche in der Liste unten!
+    .id-field = Benutzer ID:
 
     .submit = Per ID suchen
 
-    .id-validator-valuemissing = Nutzer ID benötigt
+    .id-validator-valuemissing = Benutzer ID benötigt
 
 ## Profile tab
 profile = Profil

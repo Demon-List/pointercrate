@@ -8,4 +8,4 @@ nav-ratedplus = Rated+ List
     .record-submitter = Rekord einreichen
     .time-machine = Zeitmaschine
 
-nav-userarea = Nutzerbereich
+nav-userarea = Benutzerbereich
