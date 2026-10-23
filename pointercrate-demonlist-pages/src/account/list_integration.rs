@@ -87,7 +87,10 @@ impl AccountPageTab for ListIntegrationTab {
                                     }
                                     span.arrow.hover {}
                                 },
-                                Some(_) => i{(tr("claimed-player.unverified"))},
+                                Some(_) => i {
+                                    (tr("claimed-player.unverified"))
+                                    i.fa.fa-trash.clickable #delete-unverified-claim-button style="margin-left: 10px;" {}
+                                },
                                 _ => {}
                             }
                         }

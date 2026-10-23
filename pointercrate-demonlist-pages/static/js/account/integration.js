@@ -23,7 +23,7 @@ class ClaimManager extends FilteredPaginator {
     super(
       "claim-pagination",
       (claim) => generateClaim(claim),
-      "any_name_contains"
+      "any_name_contains",
     );
   }
 
@@ -31,18 +31,18 @@ class ClaimManager extends FilteredPaginator {
     get(
       "/api/v1/records/?limit=1&status=APPROVED&player=" +
         selected.dataset.playerId,
-      {}
+      {},
     ).then((response) => {
       if (response.data.length === 0) {
         this.setError(
           trp("demonlist", "player", "claim-manager.claim-no-records", {
             ["player-id"]: selected.dataset.playerId,
-          })
+          }),
         );
         document.getElementById("claim-video").removeAttribute("src");
       } else {
         document.getElementById("claim-video").src = embedVideo(
-          response.data[0].video
+          response.data[0].video,
         );
         this.setError(null);
       }
@@ -65,7 +65,7 @@ function generateClaim(claim) {
 
   userSpan.appendChild(uname);
   userSpan.appendChild(
-    document.createTextNode(claim.user.name + " (" + claim.user.id + ")")
+    document.createTextNode(claim.user.name + " (" + claim.user.id + ")"),
   );
 
   let pname = document.createElement("b");
@@ -73,7 +73,7 @@ function generateClaim(claim) {
 
   playerSpan.appendChild(pname);
   playerSpan.appendChild(
-    document.createTextNode(claim.player.name + " (" + claim.player.id + ")")
+    document.createTextNode(claim.player.name + " (" + claim.player.id + ")"),
   );
 
   leftDiv.appendChild(userSpan);
@@ -98,7 +98,7 @@ function generateClaim(claim) {
       patch(
         "/api/v1/players/" + claim.player.id + "/claims/" + claim.user.id,
         {},
-        { verified: true }
+        { verified: true },
       ).then(() => claimManager.refresh());
     });
 
@@ -111,7 +111,7 @@ function generateClaim(claim) {
     event.stopPropagation();
     del(
       "/api/v1/players/" + claim.player.id + "/claims/" + claim.user.id,
-      {}
+      {},
     ).then(() => claimManager.refresh());
   });
 
@@ -179,7 +179,7 @@ class ClaimedPlayerRecordPaginator extends Paginator {
             "claim-records.record-notes",
             {
               ["record-id"]: recordId,
-            }
+            },
           );
 
           this.successOutput.appendChild(title);
@@ -191,14 +191,14 @@ class ClaimedPlayerRecordPaginator extends Paginator {
 
             this.successOutput.appendChild(noteAuthor);
             this.successOutput.appendChild(
-              document.createTextNode(note.content)
+              document.createTextNode(note.content),
             );
           }
 
           this.successOutput.style.display = "block";
         } else {
           this.setSuccess(
-            tr("demonlist", "player", "claim-records.record-notes-none")
+            tr("demonlist", "player", "claim-records.record-notes-none"),
           );
         }
       })
@@ -228,11 +228,19 @@ export function initialize() {
     playerPaginator.html.parentElement.style.display = "block";
   });
 
+  document
+    .getElementById("delete-unverified-claim-button")
+    ?.addEventListener("click", () => {
+      del(`/api/v1/players/me/`).then(() => {
+        window.location.reload();
+      });
+    });
+
   let claimPanel = document.getElementById("claims-claim-panel");
 
   if (claimPanel) {
     let geolocationButton = document.getElementById(
-      "claims-geolocate-nationality"
+      "claims-geolocate-nationality",
     );
     let output = new Output(claimPanel);
 
@@ -252,14 +260,14 @@ export function initialize() {
                   {
                     ["nationality"]: nationality.nation,
                     ["subdivision"]: nationality.subdivision.name,
-                  }
-                )
+                  },
+                ),
               );
             } else {
               output.setSuccess(
                 trp("demonlist", "player", "claim-geolocate.edit-success", {
                   ["nationality"]: nationality.nation,
-                })
+                }),
               );
             }
           })
@@ -268,17 +276,17 @@ export function initialize() {
     }
 
     let lockSubmissionsCheckbox = document.getElementById(
-      "lock-submissions-checkbox"
+      "lock-submissions-checkbox",
     );
     lockSubmissionsCheckbox.addEventListener("change", () => {
       patch(
         "/api/v1/players/" + playerId + "/claims/" + window.userId + "/",
         {},
-        { lock_submissions: lockSubmissionsCheckbox.checked }
+        { lock_submissions: lockSubmissionsCheckbox.checked },
       )
         .then((_) => {
           output.setSuccess(
-            tr("demonlist", "player", "claim-lock-submissions.edit-success")
+            tr("demonlist", "player", "claim-lock-submissions.edit-success"),
           );
         })
         .catch(displayError(output));
