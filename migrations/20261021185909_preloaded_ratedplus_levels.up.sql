@@ -17,6 +17,10 @@ DECLARE
     creator INTEGER;
     shifted TIMESTAMP := timezone('utc', clock_timestamp());
 BEGIN
+    IF above IS NULL THEN
+        RETURN;
+    END IF;
+
     SELECT position + 1 INTO target_position
     FROM demons
     WHERE demons.id = above;
@@ -47,7 +51,8 @@ RETURNS INTEGER
 LANGUAGE sql
 AS $$
     WITH ins AS (
-        INSERT INTO players (name) VALUES (name) ON CONFLICT (name) DO NOTHING RETURNING id
+        INSERT INTO players (name) SELECT name WHERE EXISTS (SELECT 1 FROM demons)
+        ON CONFLICT (name) DO NOTHING RETURNING id
     )
     SELECT id FROM ins
     UNION ALL
