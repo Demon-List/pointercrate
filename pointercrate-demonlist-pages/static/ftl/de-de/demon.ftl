@@ -116,7 +116,7 @@ demon-listed = {$demon} (ID: {$demon-id})
     .publisher = von {$publisher}
 
 demon-viewer = Demon #
-    .welcome = Klicke auf einen Demon links um zu starten!
+    .welcome = Klicke auf einen Demon links um anzufangen!
 
     .video-field = { demon-video }:
     .thumbnail-field = { demon-thumbnail }:
