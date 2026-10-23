@@ -1,5 +1,3 @@
-## Demon information, including information fetched by dash-rs
-## Fields included in forms may have validators
 demon-name = Demon Name
     .validator-valuemissing = Bitte spezifiziere einen Namen
 
@@ -48,9 +46,9 @@ demon-verifier = Verifier
     .validator-valuemissing = Bitte gebe eine Verifizierer an
 
 # leave rated not translated?
-demon-rated = Rated
-    .yes = Ja (Rated)
-    .no = Nein (Nicht Rated)
+demon-rated = Bewertung
+    .yes = Ja (bewertet)
+    .no = Nein (nicht bewertet)
 
 demon-creators = Ersteller
 
@@ -58,11 +56,6 @@ demon-headline-by = von { $creator }
 demon-headline-verified-by = verifiziert von { $verifier }
 demon-headline-published-by = veröffentlicht von { $publisher }
 
-# { $verified-and-published } represents two possible variations of text
-# either .same-verifier-publisher OR .unique-verifier-publisher
-#
-# { $more } in .more-creators is transformed into a tooltip listing all of
-# a demon's creators, with the text being .more-creators-tooltip
 demon-headline = von { $creator }
     .same-verifier-publisher = verifiziert und veröffentlicht von { $publisher }
     .unique-verifier-publisher = { demon-headline-published-by }, { demon-headline-verified-by }
@@ -78,7 +71,6 @@ demon-headline = von { $creator }
     .more-creators = { demon-headline-by } und { $more }, { $verified-and-published }
     .more-creators-tooltip = mehr
 
-## Position history table
 movements = Positionsgeschichte
     .date = Datum
     .change = Änderung
@@ -95,11 +87,11 @@ movements-reason = Grund
     .movedbelow = { $demon } wurde unter diesen Demon bewegt
     .rated = Rated
     .unrated = Nicht Rated
-    .otherrated = { $demon } wurde Gerated
-    .otherunrated = { $demon } wurde Entrated
-                            #   entrated?
+    .otherrated = { $demon } wurde bewertet
+    .otherunrated = { $demon } wurde der Bewertung entzogen
+                            # entwertet ist hier falsch
+                            # genitiv spricht sich hier aber auch sehr komisch?
 
-## Records table
 demon-records = Rekorde
     .none = Keine Rekorde!
     .none-yet = Keine Rekorde bisher! Sei der erste!
@@ -117,7 +109,6 @@ demon-records-total = {$num-records} { $num-records ->
     *[other] 100% sind
 }
 
-## Demons tab in user area
 demons = Demons
 demon-manager = Demon Verwaltung
 
@@ -140,7 +131,6 @@ demon-viewer = Demon #
 demon-add-panel = Demon hinzufügen
     .button = Füge einen Demon hinzu!
 
-# Demon addition form
 demon-add-form = Demon hinzufügen
     .name-field = { demon-name }:
     .name-validator-valuemissing = Bitte gebe einen Demonnamen an
@@ -158,7 +148,6 @@ demon-add-form = Demon hinzufügen
 
     .edit-success = Demon erfolgreich hinzugefügt!
 
-# Demon viewer dialogs
 demon-video-dialog = Verifikationsvideo ändern
     .info = Ändere das Verifikationsvideo für diesen Rekord. Lasse das Feld leer um es zu entfernen.
     .video-field = Video link:
@@ -169,8 +158,6 @@ demon-name-dialog = Demon Namen ändern
     .name-field = Name:
     .submit = Bearbeite
 
-# { $video-id } will be replaced by https://i.ytimg.com/vi/{.info-videoid}/mqdefault.jpg but italicized
-# in english, this looks like https://i.ytimg.com/vi/VIDEO_ID/mqdefault.jpg
 demon-thumbnail-dialog = Thumbnail ändern
     .info = Ändere den Thumbnail Link für diesen Rekord. Um es auf ein Youtube-Thumbnail zu ändern, setze es zu { $video-id }.
     .info-videoid = VIDEO_ID
