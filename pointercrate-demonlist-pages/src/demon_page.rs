@@ -377,7 +377,7 @@ impl DemonPage {
                                     DemonRating::Extreme => "Extreme Demon",
                                     _ => "???"
                                 },
-                                _ => "Level not rated demon, list mods fucked up"
+                                _ => "Unrated"
                             }
                         }
                         span {
