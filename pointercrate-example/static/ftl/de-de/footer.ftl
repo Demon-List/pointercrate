@@ -1,4 +1,4 @@
-footer-demonlist = Demonliste
+footer-demonlist = Demonlist
     .top-demon = Aktueller Top Demon
     .extended-list = { extended-list }
     .legacy-list = { legacy-list }
