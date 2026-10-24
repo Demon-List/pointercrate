@@ -102,7 +102,7 @@ profile-youtube = YouTube Kanal
     .newlink-validator-typemismatch = Bitte gebe eine gültige URL ein
 
 profile-permissions = Berechtigungen
-    .info = Die Berechtigungen, welche du auf Pointercrate hast. 'Listen...' bedeutet, dass du Teil des Demonlist Teams bist. 'Moderator' und 'Administrator' bedeutet, dass du Teil des Pointercrate Mitarbeiterteam bist.
+    .info = Die Berechtigungen, welche du auf Pointercrate hast. 'Listen...' bedeutet, dass du Teil des Demonlist Teams bist. 'Moderator' und 'Administrator' bedeutet, dass du Mitglied vom Pointercrate-Team bist.
 
 profile-delete-account = Konto löschen
     .dialog-header = Konto löschen

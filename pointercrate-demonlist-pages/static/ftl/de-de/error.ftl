@@ -1,6 +1,6 @@
 error-demonlist-geolocationfailed = Geolocation fehlgeschlagen!
 error-demonlist-malformedvideourl = Fehlerhafte Video URL
-error-demonlist-bannedfromsubmissions = Du bist ausgeschlossen, Rekorde an die Demonlist einzureichen!
+error-demonlist-bannedfromsubmissions = Du bist davon gebannt, Rekorde an die Demonlist einzureichen!
 error-demonlist-claimunverified = Dein Anspruch auf diesen Spieler ist nicht verifiziert
 error-demonlist-vpsdetected = IP Geolocation Versuch durch VPS erkannt
 error-demonlist-nothirdpartysubmissions = Dieser Spieler hat darum gebeten, dass nur er selbst seine Rekorde einreichen darf
@@ -25,7 +25,7 @@ error-demonlist-invalidrequirement = Mindestanforderung muss größer als -1 und
 error-demonlist-invalidposition = Demon Position darf nicht kleiner als 1 und nicht größer als { $maximal } sein
 error-demonlist-invalidprogress = Rekord Fortschritt muss zwischen { $requirement } und 100% liegen!
 error-demonlist-submissionexists = Dieser Rekord ist bereits { $record-status } (Rekord ID: { $record-id })
-error-demonlist-playerbanned = Der angegebene Spieler ist von der Demonlist ausgeschlossen und darf keine Rekorde auf der Liste haben!
+error-demonlist-playerbanned = Der angegebene Spieler ist von der Demonlist gebannt und darf keine Rekorde auf der Liste haben!
 error-demonlist-submitlegacy = Legacy Demons erlauben keine neuen Rekorde
 error-demonlist-non100extended = Nur Rekorde mit 100% dürfen als Rekord an die Erweiterte Liste eingereicht werden.
 error-demonlist-unsupportedvideohost = Der angegebene Videohost ist nicht unterstützt. Unterstützt sind: 'youtube', 'vimeo', 'everyplay', 'twitch' und 'bilibili'
