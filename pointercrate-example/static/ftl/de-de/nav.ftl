@@ -3,7 +3,7 @@ nav-demonlist = Demonlist
     .record-submitter = Rekord einreichen
     .time-machine = Zeitmaschine
 
-nav-ratedplus = Rated+ List
+nav-ratedplus = Rated+ Liste
     .stats-viewer = Stats anschauen
     .record-submitter = Rekord einreichen
     .time-machine = Zeitmaschine
