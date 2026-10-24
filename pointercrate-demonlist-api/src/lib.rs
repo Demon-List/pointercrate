@@ -27,6 +27,7 @@ pub fn setup(rocket: Rocket<Build>) -> Rocket<Build> {
     let mut player_routes = rocket::routes![
         endpoints::player::get,
         endpoints::player::get_me,
+        endpoints::player::delete_me_claim,
         endpoints::player::paginate,
         endpoints::player::patch,
         endpoints::player::ranking,

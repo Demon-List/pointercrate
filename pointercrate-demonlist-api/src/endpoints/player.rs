@@ -56,6 +56,19 @@ pub async fn get_me(auth: AuthWithClaim<ApiToken, false>) -> Result<Tagged<FullP
 }
 
 #[localized]
+#[rocket::delete("/me/")]
+pub async fn delete_me_claim(auth: AuthWithClaim<ApiToken, false>) -> Result<Status> {
+    let AuthWithClaim(mut auth, claim) = auth;
+
+    let claim = PlayerClaim::get(auth.user.user().id, claim.player.id, &mut auth.connection).await?;
+
+    claim.delete(&mut auth.connection).await?;
+    auth.commit().await?;
+
+    Ok(Status::NoContent)
+}
+
+#[localized]
 #[rocket::get("/<player_id>/")]
 pub async fn get(player_id: i32, pool: &State<PointercratePool>) -> Result<Tagged<FullPlayer>> {
     let mut connection = pool.connection().await?;

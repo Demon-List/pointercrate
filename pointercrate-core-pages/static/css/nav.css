@@ -4,7 +4,7 @@ header nav {
 
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 
   position: fixed;
 
@@ -23,7 +23,7 @@ header nav + * {
 
 header nav .nav-icon {
   font-size: 150%;
-  padding: 5px 20px;
+  padding: 5px 0px 5px 20px;
   display: flex;
   align-items: center;
 }
