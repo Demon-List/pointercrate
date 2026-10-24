@@ -6,7 +6,7 @@ player-nationality = Nationalität
     .info = Beachte, dass dies ausschließlich als "Land mit rechtsmäßigem Wohnsitz" gilt, ohne Ausnahmen!
     .none = Keine
 
-player-subdivision = Politische Unterteilung
+player-subdivision = Politische Gliederung
     .none = Keine
 
 ## Players tab
@@ -82,11 +82,11 @@ claim-initiate-panel = Anspruch einreichen
 # clickable link to Pointercrate Central by default (this can be modified
 # in pointercrate-example/src/main.rs)
 claim-info-panel = Anspruch einreichen 101
-    .info-a = Spielerbeanspruchung ist der Prozess, einen Demonlistspieler mit einem Pointercrate Benutzerkonto zu verbinden.
+    .info-a = Spielerbeanspruchung ist der Prozess, einen Demonlist Spieler mit einem Pointercrate Benutzerkonto zu verbinden.
     .info-b = Um einen Anspruch einzureichen, klicke auf den Stift links neben "Spieleranspruch". Sobald ausgewählt, besteht ein unverifizierter Anspruch auf einen Spieler. Diese Ansprüche werden anschließend manuell von Mitgliedern des Pointercrate-Teams überprüft. Die Überprüfung kann im Discord-Server beantragt werden.
     .info-c = Du kannst keinen Anspruch auf einen Spieler erheben, welcher bereits einen verifizierten Anspruch von einem anderen Benutzer hat.
 
     .info-discord = dieser Discord-Server
 
 claim-video-panel = Rekordvideo
-    .info = Durch Anklicken eines Anspruchs in "Ansprüche verwalten" wird ein ein zufällig ausgewähltes Video eines angenommenen Rekords des Spielers angezeigt.
+    .info = Durch Anklicken eines Anspruchs in "Ansprüche verwalten" wird ein zufällig ausgewähltes Video eines angenommenen Rekords des Spielers angezeigt.

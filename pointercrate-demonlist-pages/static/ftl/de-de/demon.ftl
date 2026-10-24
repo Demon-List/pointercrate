@@ -150,7 +150,7 @@ demon-add-form = Demon hinzufügen
 
 demon-video-dialog = Verifikationsvideo ändern
     .info = Ändere das Verifikationsvideo für diesen Rekord. Lasse das Feld leer um es zu entfernen.
-    .video-field = Video link:
+    .video-field = Videolink:
     .submit = Bearbeiten
 
 demon-name-dialog = Demon Namen ändern

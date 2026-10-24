@@ -10,7 +10,7 @@ statsviewer = Stats anschauen
     .completed-legacy = Legacy Liste Demons geschafft
 
     .created = Demons erstellt
-    .published = Demons veröffentlich
+    .published = Demons veröffentlicht
     .verified = Demons verifiziert
     .progress = Fortschritt auf
 
@@ -28,7 +28,7 @@ statsviewer-nation = National
     .players = Spieler
     .unbeaten = Nicht geschaffte Demons
 
-    .created-tooltip = (Co-)erstellt von { $players } { $players ->
+    .created-tooltip = (Co-)Erstellt von { $players } { $players ->
             [one] player
             *[other] players
         } in diesem Land:
@@ -62,14 +62,14 @@ continent-panel = Kontinent
     .option-southamerica = Südamerika
     .option-centralamerica = Mittelamerika
 
-toggle-subdivision-panel = Zeige Unterteilungen
-    .info = Ob die Karte politische Unterteilungen darstellen soll.
+toggle-subdivision-panel = Zeige Gliederung
+    .info = Ob die Karte politische Gliederung darstellen soll.
 
-    .option-toggle = Zeige Unterteilungen
+    .option-toggle = Zeige Gliederung
 
 # { $countries } will be replaced with .info-countries, which will be
 # turned into a tooltip listing all of the selectable countries
-subdivision-panel = Politische Unterteilung
+subdivision-panel = Politische Gliederung
     .info = Für die { $countries } kannst du einen Staat / Provinz / Land auswählen, um die Stats darauf zu fokussieren.
     .info-countries = folgenden Länder
 

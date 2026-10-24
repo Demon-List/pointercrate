@@ -4,7 +4,7 @@ record-underconsideration = Ausstehend
 record-approved = Angenommen
 record-rejected = Abgelehnt
 
-record-videolink = Video Link
+record-videolink = Videolink
 record-videoproof = Videobeweis
 record-rawfootage = Rohaufnahme
 record-demon = Demon
@@ -41,8 +41,8 @@ record-note-listed = Rekordnotiz #{ $note-id }
 
     .author = Diese Notiz wurde von { $author } verfasst.
     .author-submitter = Diese Notiz wurde als Kommentar vom Einreicher verfasst.
-    .editors = Die Notiz wurde daraufhin von folgenden Person bearbeitet: { $editors }.
-    .transferred = Diese Notiz wurde ursprünglich nicht auf diesem Rekord hinterlasssen.
+    .editors = Die Notiz wurde daraufhin von folgenden Personen bearbeitet: { $editors }.
+    .transferred = Diese Notiz wurde ursprünglich nicht auf diesem Rekord hinterlassen.
     .public = Diese Notiz ist public.
 
 record-status-filter-panel = Filter
@@ -68,9 +68,9 @@ record-playersearch-panel = Nach Spieler filtern
     .name-submit = Finde nach Name
 
 # Record viewer dialogs
-record-videolink-dialog = Video Link ändern
-    .info = Ändere den Video Link für diesen Rekord. Beachte, dass du als Listenmoderator, das Textfeld leer lassen kannst, um das Video von diesem Rekord zu entfernen.
-    .videolink-field = Video Link:
+record-videolink-dialog = Videolink ändern
+    .info = Ändere den Videolink für diesen Rekord. Beachte, dass du als Listenmoderator, das Textfeld leer lassen kannst, um das Video von diesem Rekord zu entfernen.
+    .videolink-field = Videolink:
 
     .submit = Ändern
 
@@ -119,7 +119,7 @@ record-manager-help = Rekorde verwalten
     .approved = Sollte der Rekord { record-approved } sein, bedeutet das, dass keine Rekorde mit weniger Fortschritt als der { record-approved }e Rekord existieren oder erlaubt sind.
     Einen Rekord auf den Status { record-approved } zu ändern, löscht alle anderen Einreichungen für Kevin auf Cataclysm mit weniger Fortschritt.
 
-    .submitted = Ist der Rekord { record-submitted }, bestehen keine weiteren Einschränkungen hinsichtlich der Eindeutigkeit. Dies bedeutet, dass mehrere Einreichungen von Kevin auf Cataclysm möglich sind, solange diese alle verschiedene Video Links besitzen. Aus den oben genannten Gründen, werden jedoch alle Duplikate gelöscht, sobald einer der Einreichungen angenommen oder abgelehnt wurde.
+    .submitted = Ist der Rekord { record-submitted }, bestehen keine weiteren Einschränkungen hinsichtlich der Eindeutigkeit. Dies bedeutet, dass mehrere Einreichungen von Kevin auf Cataclysm möglich sind, solange diese alle verschiedene Videolinks besitzen. Aus den oben genannten Gründen, werden jedoch alle Duplikate gelöscht, sobald einer der Einreichungen angenommen oder abgelehnt wurde.
 
     .underconsideration = Sollte der Rekord noch { record-underconsideration } sein, ist er im Prinzip immer noch eine Einreichung. Jedoch sind keine weiteren Einreichungen von Kevin auf Cataclysm erlaubt.
 
