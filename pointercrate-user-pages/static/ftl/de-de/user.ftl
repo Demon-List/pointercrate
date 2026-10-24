@@ -31,7 +31,7 @@ auth-repeatpassword = Password wiederholen:
 login = Einloggen
 .oauth-info = Solltest du deinen Pointercrate Konto mit einem Google Konto verlinkt haben, musst du dich mit dem unteren Google oauth Knopf einloggen:
 
-    .methods-separator = sonst
+    .methods-separator = Stattdessen
 
     .info = Logge dich mit Benutzername und Passwort ein. Logins sind auf 3 Versuche alle 30 Minuten beschränkt.
     .submit = Einloggen
@@ -43,13 +43,13 @@ login = Einloggen
 
 register = Registrierung
     .info = Erstelle ein neues Konto. Bitte achte darauf, dass der Benutzername nach der Registrierung NICHT mehr geändert werden kann!
-    .submit = Registriere
+    .submit = Registrieren
 
     .redirect = Noch kein Pointercrate Konto? { $redirect-link } für eins!
-    .redirect-link = Registriere
+    .redirect-link = Registrieren
 
 register-oauth = Wähle deinen Benutzername:
-    .submit = Registriere!
+    .submit = Registrieren!
 
 ## Users tab
 users = Benutzer
@@ -81,7 +81,7 @@ profile = Profil
     .header = Profil - {$username}
 
 profile-username = Benutzername
-    .info = Der Name unter dem zu registriert bist und dich bei Pointercrate mit einloggst. Dieser Name ist einzigartig und kann nicht verändert werden.
+    .info = Der Name unter dem du registriert bist und dich bei Pointercrate mit einloggst. Dieser Name ist einzigartig und kann nicht verändert werden.
 
 profile-display-name = Anzeigename
     .info = Falls gesetzt, wird dieser Name anstatt dein Benutzername gezeigt. Anzeigenamen sind nicht einzigartig und können nicht zum einloggen verwendet werden.

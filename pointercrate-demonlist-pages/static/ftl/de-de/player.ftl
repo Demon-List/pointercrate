@@ -24,7 +24,7 @@ player-idsearch-panel = Spieler nach ID suchen
     .info = Spieler können durch ihre ID eindeutig identifiziert werden. Durch die Eingabe der Spieler ID wird dieser links ausgewählt (sofern er existiert)
     .id-field = Spieler ID:
 
-    .submit = Suche nach ID
+    .submit = Finde nach ID
 
     .id-validator-valuemissing = Spieler ID benötigt
 
