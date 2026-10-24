@@ -80,7 +80,7 @@ submitter-viewer = Einreicher #
 submitter-listed = Einreicher #{ $submitter-id }
 
 submitter-idsearch-panel = Einricher nach ID suchen
-    .info = Spieler können durch ihre ID eindeutig identifiziert werden. Durch die Eingabe der Einreicher ID wird dieser links ausgewählt (sofern er existiert)
+    .info = Einreicher können durch ihre ID eindeutig identifiziert werden. Durch die Eingabe der Einreicher ID wird dieser links ausgewählt (sofern er existiert)
     .id-field = Einreicher ID:
 
     .submit = Finde nach ID

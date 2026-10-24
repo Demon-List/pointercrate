@@ -3,7 +3,7 @@ edit-notmodified = Keine Bearbeitung vorgenommen.
 
 dropdown-placeholder = Klicke, um auszuwählen
 
-filtered-paginator-placeholder = Enter, zum suchen...
+filtered-paginator-placeholder = Suche...
 
 paginator-previous = Vorherige
 paginator-next = Nächste
