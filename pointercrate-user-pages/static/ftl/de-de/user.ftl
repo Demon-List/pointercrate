@@ -1,6 +1,6 @@
 user-username = Benutzername:
 user-displayname = Anzeigename:
-    .none = Nichts
+    .none = Keinen
 user-id = Benutzer ID:
 
 user-permissions = Berechtigungen:
@@ -33,7 +33,7 @@ login = Einloggen
 
     .methods-separator = sonst
 
-    .info = Logge dich mit Benutzername und Passwort ein. Loginversuche sind auf 3 alle 30 Minuten beschränkt.
+    .info = Logge dich mit Benutzername und Passwort ein. Logins sind auf 3 Versuche alle 30 Minuten beschränkt.
     .submit = Einloggen
 
     .error-invalidcredentials = Falsche Login Daten

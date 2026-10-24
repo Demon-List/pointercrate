@@ -5,7 +5,7 @@ error-core-badrequest = Der Browser (oder Proxy) hat eine Anfrage gesendet, welc
 error-core-invalidheadervalue = Der Header-Wert '{ $header }' konnte nicht verarbeitet werden.
 error-core-unauthorized = Der Server konnte nicht feststellen, dass du Zugriff auf die angeforderte URL hast. Du hast entweder falsche Login-Daten eingegeben (z.B. ein falsches Passwort) oder dein Browser kann die Daten nicht verarbeiten.
 error-core-forbidden = Du hast keinen Zugriff auf die Ressource. Sie ist entweder Lesegeschützt oder vom Server nicht lesbar.
-error-core-missingpermissions Du hast keine ausreichenden Pointercrate Berechtigungen um diese Anfrage auszuführen. Benötigt ist: { $required-permission }, welche nicht in deinen vorhandenen Rechten existiert.
+error-core-missingpermissions = Du hast keine ausreichenden Pointercrate Berechtigungen um diese Anfrage auszuführen. Benötigt ist: { $required-permission }, welche nicht in deinen vorhandenen Rechten existiert.
 error-core-notfound = Die angeforderte URL konnte nicht gefunden werden. Falls du die URL manuell eingegeben hast, prüfe die Rechtschreibung und probiere es erneut.
 error-core-methodnotallowed = Diese Methode ist für die angeforderte URL nicht erlaubt.
 error-core-conflict = Bei der Bearbeitung der Anfrage ist ein Fehler aufgetreten. Die Ressource wurde wohlmöglich während deiner Anfrage modifiziert.
