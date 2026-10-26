@@ -1,0 +1,6 @@
+CREATE TABLE page_visits (
+    visit_id SERIAL PRIMARY KEY NOT NULL,
+    time TIMESTAMP WITHOUT TIME ZONE DEFAULT (NOW() AT TIME ZONE 'utc') NOT NULL,
+    device_id UUID NOT NULL,
+    uri CITEXT NOT NULL
+);

@@ -1,3 +1,4 @@
+pub mod analytics;
 pub mod error;
 pub mod etag;
 pub mod localization;
