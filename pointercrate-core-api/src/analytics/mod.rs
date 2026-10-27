@@ -28,7 +28,11 @@ impl Fairing for AnalyticsFairing {
 
     async fn on_request(&self, request: &mut Request<'_>, _: &mut Data<'_>) {
         let uri = request.uri().to_string();
-        if !self.0.contains(&uri.as_str()) || request.headers().get_one("User-Agent").is_none_or(|h| !h.starts_with("Mozilla/")) {
+        let user_agent = match request.headers().get_one("User-Agent") {
+            Some(user_agent) => user_agent,
+            None => return,
+        };
+        if !self.0.contains(&uri.as_str()) || !user_agent.starts_with("Mozilla/") {
             return;
         }
 
@@ -49,7 +53,7 @@ impl Fairing for AnalyticsFairing {
 
         if let Some(pool) = request.rocket().state::<PointercratePool>() {
             if let Ok(mut connection) = pool.connection().await {
-                PageVisitAnalytics::log_visit(&device_id, &uri, &mut connection)
+                PageVisitAnalytics::log_visit(&device_id, &uri, Some(user_agent), &mut connection)
                     .await
                     .unwrap_or_else(|_| log::error!("Failed to log visit to {} for device {}", uri, &device_id));
 

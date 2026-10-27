@@ -10,10 +10,11 @@ pub struct PageVisitAnalytics {
 }
 
 impl PageVisitAnalytics {
-    pub async fn log_visit(device_id: &str, uri: &str, connection: &mut PgConnection) -> Result<(), CoreError> {
-        sqlx::query("INSERT INTO page_visits (device_id, uri) VALUES ($1::uuid, $2)")
+    pub async fn log_visit(device_id: &str, uri: &str, user_agent: Option<&str>, connection: &mut PgConnection) -> Result<(), CoreError> {
+        sqlx::query("INSERT INTO page_visits (device_id, uri, user_agent) VALUES ($1::uuid, $2, $3)")
             .bind(device_id)
             .bind(uri)
+            .bind(user_agent)
             .execute(&mut *connection)
             .await?;
 
