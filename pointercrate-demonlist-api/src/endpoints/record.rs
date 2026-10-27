@@ -1,7 +1,8 @@
-use crate::ratelimits::DemonlistRatelimits;
+use crate::{list::ClientList, ratelimits::DemonlistRatelimits};
 use log::{debug, error, warn};
 use pointercrate_core::{audit::AuditLogEntry, error::CoreError, pool::PointercratePool};
 use pointercrate_core_api::{
+    analytics::submissions::SubmissionAnalytics,
     error::Result,
     etag::{Precondition, TaggableExt, Tagged},
     pagination::pagination_response,
@@ -81,10 +82,10 @@ pub async fn unauthed_pagination(
 }
 
 #[localized]
-#[rocket::post("/", data = "<submission>")]
+#[rocket::post("/?<list>", data = "<submission>")]
 pub async fn submit(
     ip: IpAddr, auth: Option<Auth<ApiToken>>, submission: Json<Submission>, pool: &State<PointercratePool>,
-    ratelimits: &State<DemonlistRatelimits>,
+    ratelimits: &State<DemonlistRatelimits>, list: Option<ClientList>,
 ) -> Result<Response2<Tagged<FullRecord>>> {
     let submission = submission.0;
     let status_is_submitted = submission.status() == RecordStatus::Submitted;
@@ -143,6 +144,10 @@ pub async fn submit(
     }
 
     let mut record = validated.create(submitter, &mut connection).await?;
+
+    if let Some(list) = list {
+        SubmissionAnalytics::log_submission(&list.0.as_str(), &record.id, &mut *connection).await?;
+    }
 
     connection.commit().await.map_err(DemonlistError::from)?;
 

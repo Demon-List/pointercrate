@@ -200,7 +200,13 @@ export function initializeRecordSubmitter(submitApproved = false) {
     if (submitApproved) {
       data.status = "approved";
     }
-    post("/api/v1/records/", headers, data)
+    let endpoint = "/api/v1/records/";
+
+    if (window.active_list) {
+      endpoint += "?list=" + window.active_list;
+    }
+
+    post(endpoint, headers, data)
       .then((response) => {
         let queue_position = response.headers["x-submission-count"];
 
