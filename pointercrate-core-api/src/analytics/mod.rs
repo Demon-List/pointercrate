@@ -1,7 +1,7 @@
 use pointercrate_core::pool::PointercratePool;
 use rocket::{
     fairing::{Fairing, Info, Kind},
-    http::Cookie,
+    http::{Cookie, SameSite},
     Data, Request,
 };
 use uuid::Uuid;
@@ -28,7 +28,7 @@ impl Fairing for AnalyticsFairing {
 
     async fn on_request(&self, request: &mut Request<'_>, _: &mut Data<'_>) {
         let uri = request.uri().to_string();
-        if !self.0.contains(&uri.as_str()) {
+        if !self.0.contains(&uri.as_str()) || request.headers().get_one("User-Agent").is_none_or(|h| !h.starts_with("Mozilla/")) {
             return;
         }
 
@@ -37,7 +37,11 @@ impl Fairing for AnalyticsFairing {
             Some(cookie) => cookie.value().to_string(),
             None => {
                 let device_id = Uuid::new_v4().to_string();
-                cookies.add(Cookie::build((DEVICE_COOKIE_NAME, device_id.clone())).permanent());
+                cookies.add(
+                    Cookie::build((DEVICE_COOKIE_NAME, device_id.clone()))
+                        .permanent()
+                        .same_site(SameSite::Lax),
+                );
 
                 device_id
             },
