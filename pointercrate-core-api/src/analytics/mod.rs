@@ -41,11 +41,16 @@ impl Fairing for AnalyticsFairing {
             Some(cookie) => cookie.value().to_string(),
             None => {
                 let device_id = Uuid::new_v4().to_string();
-                cookies.add(
-                    Cookie::build((DEVICE_COOKIE_NAME, device_id.clone()))
-                        .permanent()
-                        .same_site(SameSite::Lax),
-                );
+                let mut cookie = Cookie::build((DEVICE_COOKIE_NAME, device_id.clone()))
+                    .permanent()
+                    .same_site(SameSite::Lax)
+                    .build();
+
+                // tracking cookie needs to be shared between www and non-www requests
+                if let Some(host) = request.host() {
+                    cookie.set_domain(host.domain().as_str().trim_start_matches("www.").to_string());
+                }
+                cookies.add(cookie);
 
                 device_id
             },

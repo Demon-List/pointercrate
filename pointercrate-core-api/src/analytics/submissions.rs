@@ -1,6 +1,6 @@
 use pointercrate_core::error::CoreError;
 use serde::Serialize;
-use sqlx::{prelude::FromRow, PgConnection};
+use sqlx::{postgres::types::PgInterval, prelude::FromRow, PgConnection};
 
 #[derive(Debug, Serialize, FromRow)]
 pub struct SubmissionAnalytics {
@@ -20,7 +20,7 @@ impl SubmissionAnalytics {
         Ok(())
     }
 
-    pub async fn get_submission_analytics(connection: &mut PgConnection) -> Result<Vec<SubmissionAnalytics>, CoreError> {
+    pub async fn get_submission_analytics(days: i32, connection: &mut PgConnection) -> Result<Vec<SubmissionAnalytics>, CoreError> {
         Ok(sqlx::query_as::<_, SubmissionAnalytics>(
             r#"
             SELECT
@@ -29,10 +29,15 @@ impl SubmissionAnalytics {
                 COUNT(*) FILTER (WHERE r.status_ = 'APPROVED') AS approved_submissions_30days
             FROM submission_analytics a
             LEFT JOIN records r ON r.id = a.record_id
-            WHERE a.time >= (NOW() AT TIME ZONE 'utc') - INTERVAL '30 days'
+            WHERE a.time >= (NOW() AT TIME ZONE 'utc') - INTERVAL $1
             GROUP BY a.list
             "#,
         )
+        .bind(PgInterval {
+            months: 0,
+            days,
+            microseconds: 0,
+        })
         .fetch_all(&mut *connection)
         .await?)
     }

@@ -1,12 +1,21 @@
 use pointercrate_core::error::CoreError;
 use serde::Serialize;
-use sqlx::{prelude::FromRow, PgConnection};
+use sqlx::{postgres::types::PgInterval, prelude::FromRow, PgConnection};
 
 #[derive(Debug, Serialize, FromRow)]
 pub struct PageVisitAnalytics {
     uri: String,
-    visits_30days: i64,
-    visitors_30days: i64, // visitors (identified by device id) in last 30 days
+
+    visits: i64,
+    visitors: i64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct PageVisitRefererAnalytics {
+    home: i64,
+    navbar: i64,
+    web_search: i64,
+    link: i64,
 }
 
 impl PageVisitAnalytics {
@@ -25,14 +34,22 @@ impl PageVisitAnalytics {
         Ok(())
     }
 
-    pub async fn get_page_visits(connection: &mut PgConnection) -> Result<Vec<PageVisitAnalytics>, CoreError> {
+    pub async fn get_page_visits(days: i32, connection: &mut PgConnection) -> Result<Vec<PageVisitAnalytics>, CoreError> {
         Ok(sqlx::query_as::<_, PageVisitAnalytics>(
             r#"
-            SELECT uri, COUNT(*) AS visits_30days, COUNT(DISTINCT device_id) AS visitors_30days
+            SELECT
+                uri,
+                COUNT(*) AS visits,
+                COUNT(DISTINCT device_id) AS visitors
             FROM page_visits
-            WHERE time >= NOW() - INTERVAL '30 days'
+            WHERE time >= NOW() - INTERVAL $1
             GROUP BY uri"#,
         )
+        .bind(PgInterval {
+            months: 0,
+            days,
+            microseconds: 0,
+        })
         .fetch_all(&mut *connection)
         .await?)
     }
