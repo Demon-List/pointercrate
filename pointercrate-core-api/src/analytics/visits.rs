@@ -10,11 +10,15 @@ pub struct PageVisitAnalytics {
 }
 
 impl PageVisitAnalytics {
-    pub async fn log_visit(device_id: &str, uri: &str, user_agent: Option<&str>, connection: &mut PgConnection) -> Result<(), CoreError> {
-        sqlx::query("INSERT INTO page_visits (device_id, uri, user_agent) VALUES ($1::uuid, $2, $3)")
+    pub async fn log_visit(
+        device_id: &str, uri: &str, referer: Option<&str>, user_agent: Option<&str>, connection: &mut PgConnection,
+    ) -> Result<(), CoreError> {
+        sqlx::query("INSERT INTO page_visits (device_id, uri, referer, user_agent) VALUES ($1::uuid, $2, $3, $4)")
             .bind(device_id)
             .bind(uri)
-            .bind(user_agent)
+            // arbitrarily limit these to 500 chars so ppl cant send massive headers to get logged
+            .bind(referer.and_then(|v| Some(v.chars().take(500).collect::<String>())))
+            .bind(user_agent.and_then(|v| Some(v.chars().take(500).collect::<String>())))
             .execute(&mut *connection)
             .await?;
 

@@ -1,0 +1,1 @@
+ALTER TABLE page_visits DROP COLUMN referer;

@@ -53,9 +53,15 @@ impl Fairing for AnalyticsFairing {
 
         if let Some(pool) = request.rocket().state::<PointercratePool>() {
             if let Ok(mut connection) = pool.connection().await {
-                PageVisitAnalytics::log_visit(&device_id, &uri, Some(user_agent), &mut connection)
-                    .await
-                    .unwrap_or_else(|_| log::error!("Failed to log visit to {} for device {}", uri, &device_id));
+                PageVisitAnalytics::log_visit(
+                    &device_id,
+                    &uri,
+                    request.headers().get_one("Referer"),
+                    Some(user_agent),
+                    &mut connection,
+                )
+                .await
+                .unwrap_or_else(|_| log::error!("Failed to log visit to {} for device {}", uri, &device_id));
 
                 return;
             }
