@@ -8,14 +8,12 @@ pub struct PageVisitAnalytics {
 
     visits: i64,
     visitors: i64,
-}
 
-#[derive(Debug, Serialize)]
-pub struct PageVisitRefererAnalytics {
-    home: i64,
-    navbar: i64,
-    web_search: i64,
-    link: i64,
+    from_home: i64,
+    from_within: i64,
+    from_web: i64,
+    from_social: i64,
+    from_direct: i64,
 }
 
 impl PageVisitAnalytics {
@@ -40,9 +38,24 @@ impl PageVisitAnalytics {
             SELECT
                 uri,
                 COUNT(*) AS visits,
-                COUNT(DISTINCT device_id) AS visitors
+                COUNT(DISTINCT device_id) AS visitors,
+
+                COUNT(*) FILTER
+                    (WHERE referer = ANY(ARRAY['https://pointercrate.com/', 'https://www.pointercrate.com/']))
+                    AS from_home,
+                COUNT(*) FILTER
+                    (WHERE referer <> ALL(ARRAY['https://pointercrate.com/', 'https://www.pointercrate.com/'])
+                    AND referer ~ ANY(ARRAY['//pointercrate.com/', '//www.pointercrate.com/']))
+                    AS from_within,
+                COUNT(*) FILTER
+                    (WHERE referer ~ ANY(ARRAY['google.', 'bing.com', 'yahoo.com', 'duckduckgo.com', 'yandex.', 'baidu.com', 'ecosia.org', 'search.brave.com', 'startpage.com']))
+                    AS from_web,
+                COUNT(*) FILTER
+                    (WHERE referer ~ ANY(ARRAY['youtube.com', 'youtu.be', 'discord.com', 'discordapp.com', 'reddit.com', 'twitter.com', '//x.com/', '//t.co/', 'facebook.com', 'instagram.com', 'tiktok.com', 'twitch.tv', 'bsky.app']))
+                    AS from_social,
+                COUNT(*) FILTER (WHERE referer IS NULL) AS from_direct
             FROM page_visits
-            WHERE time >= NOW() - INTERVAL $1
+            WHERE time >= NOW() - $1::interval
             GROUP BY uri"#,
         )
         .bind(PgInterval {
