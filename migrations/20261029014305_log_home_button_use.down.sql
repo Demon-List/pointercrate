@@ -1,0 +1,1 @@
+ALTER TABLE page_visits DROP COLUMN used_home_button;

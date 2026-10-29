@@ -27,7 +27,14 @@ impl Fairing for AnalyticsFairing {
     }
 
     async fn on_request(&self, request: &mut Request<'_>, _: &mut Data<'_>) {
-        let uri = request.uri().to_string();
+        let used_home_button = request.uri().query().is_some_and(|query| query == "from=home");
+        if used_home_button {
+            let mut uri = request.uri().clone();
+            uri.clear_query();
+            request.set_uri(uri);
+        }
+
+        let uri = request.uri().path().to_string();
         let user_agent = match request.headers().get_one("User-Agent") {
             Some(user_agent) => user_agent,
             None => return,
@@ -57,6 +64,7 @@ impl Fairing for AnalyticsFairing {
             if let Ok(mut connection) = pool.connection().await {
                 PageVisitAnalytics::log_visit(
                     &device_id,
+                    used_home_button,
                     &uri,
                     request.headers().get_one("Referer"),
                     Some(user_agent),
