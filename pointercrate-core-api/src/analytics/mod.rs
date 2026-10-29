@@ -11,7 +11,7 @@ use crate::analytics::visits::PageVisitAnalytics;
 pub mod submissions;
 pub mod visits;
 
-pub const DEVICE_COOKIE_NAME: &str = "pc-device-id";
+pub const DEVICE_COOKIE_NAME: &str = "pointercrate-device-id";
 
 pub struct AnalyticsFairing(
     pub Vec<&'static str>, // the only pages to track visitor analytics for
@@ -41,16 +41,13 @@ impl Fairing for AnalyticsFairing {
             Some(cookie) => cookie.value().to_string(),
             None => {
                 let device_id = Uuid::new_v4().to_string();
-                let mut cookie = Cookie::build((DEVICE_COOKIE_NAME, device_id.clone()))
-                    .permanent()
-                    .same_site(SameSite::Lax)
-                    .build();
-
-                // tracking cookie needs to be shared between www and non-www requests
-                if let Some(host) = request.host() {
-                    cookie.set_domain(host.domain().as_str().trim_start_matches("www.").to_string());
-                }
-                cookies.add(cookie);
+                cookies.add(
+                    Cookie::build((DEVICE_COOKIE_NAME, device_id.clone()))
+                        .permanent()
+                        .same_site(SameSite::Lax)
+                        // tracking cookie needs to be shared between www and non-www requests
+                        .domain("pointercrate.com"),
+                );
 
                 device_id
             },
