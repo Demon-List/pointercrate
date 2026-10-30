@@ -41,22 +41,28 @@ impl PageVisitAnalytics {
                 COUNT(*) AS visits,
                 COUNT(DISTINCT device_id) AS visitors,
 
+                COUNT(*) FILTER (WHERE is_home) AS from_home,
                 COUNT(*) FILTER
-                    (WHERE referer = ANY(ARRAY['https://pointercrate.com/', 'https://www.pointercrate.com/']))
-                    AS from_home,
-                COUNT(*) FILTER
-                    (WHERE NOT used_home_button AND referer <> ALL(ARRAY['https://pointercrate.com/', 'https://www.pointercrate.com/'])
-                    AND referer ~ ANY(ARRAY['//pointercrate.com/', '//www.pointercrate.com/']))
+                    (WHERE NOT used_home_button AND NOT is_home AND host IN ('pointercrate.com', 'www.pointercrate.com'))
                     AS from_within,
                 COUNT(*) FILTER
-                    (WHERE referer ~ ANY(ARRAY['google.', 'bing.com', 'yahoo.com', 'duckduckgo.com', 'yandex.', 'baidu.com', 'ecosia.org', 'search.brave.com', 'startpage.com']))
+                    (WHERE host LIKE ANY(ARRAY['%google.%', '%bing.com', '%yahoo.com', '%duckduckgo.com', '%yandex.%', '%baidu.com', '%ecosia.org', 'search.brave.com', '%startpage.com']))
                     AS from_web,
                 COUNT(*) FILTER
-                    (WHERE referer ~ ANY(ARRAY['youtube.com', 'youtu.be', 'discord.com', 'discordapp.com', 'reddit.com', 'twitter.com', '//x.com/', '//t.co/', 'facebook.com', 'instagram.com', 'tiktok.com', 'twitch.tv', 'bsky.app']))
+                    (WHERE host LIKE ANY(ARRAY['%youtube.com', 'youtu.be', '%discord.com', '%discordapp.com', '%reddit.com', '%twitter.com', 'x.com', 't.co', '%facebook.com', '%instagram.com', '%tiktok.com', '%twitch.tv', 'bsky.app']))
                     AS from_social,
                 COUNT(*) FILTER (WHERE referer IS NULL) AS from_direct
-            FROM page_visits
-            WHERE time >= NOW() - $1::interval
+            FROM (
+                SELECT
+                    uri::text AS uri,
+                    device_id,
+                    used_home_button,
+                    referer,
+                    referer IN ('https://pointercrate.com/', 'https://www.pointercrate.com/') AS is_home,
+                    split_part(referer, '/', 3) AS host
+                FROM page_visits
+                WHERE time >= NOW() - $1::interval
+            ) v
             GROUP BY uri"#,
         )
         .bind(PgInterval {
