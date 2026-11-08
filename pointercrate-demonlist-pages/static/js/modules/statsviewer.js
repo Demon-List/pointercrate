@@ -10,7 +10,11 @@ import {
   Viewer,
 } from "/static/core/js/modules/form.js";
 import { tr, trp } from "/static/core/js/modules/localization.js";
-import { currentTheme, ThemedElement, transitionTheme } from "/static/core/js/modules/theme.js";
+import {
+  currentTheme,
+  ThemedElement,
+  transitionTheme,
+} from "/static/core/js/modules/theme.js";
 
 export class StatsViewer extends FilteredPaginator {
   /**
@@ -23,7 +27,7 @@ export class StatsViewer extends FilteredPaginator {
     super(
       "stats-viewer-pagination",
       statsviewerdata.entryGenerator,
-      "name_contains"
+      "name_contains",
     );
 
     this.endpoint = statsviewerdata.rankingEndpoint;
@@ -34,7 +38,7 @@ export class StatsViewer extends FilteredPaginator {
     this.html = html;
     this.output = new Viewer(
       html.getElementsByClassName("viewer-content")[0],
-      this
+      this,
     );
 
     this._name = document.getElementById("player-name");
@@ -69,7 +73,7 @@ export class StatsViewer extends FilteredPaginator {
     this.updateQueryData("list", window.active_list);
 
     this.demonSortingModeDropdown = new Dropdown(
-      document.getElementById("demon-sorting-mode-dropdown")
+      document.getElementById("demon-sorting-mode-dropdown"),
     );
 
     this.demonSortingModeDropdown.addEventListener((selected) => {
@@ -92,7 +96,7 @@ export class StatsViewer extends FilteredPaginator {
 
     this.demonSortingModeDropdown.select(
       localStorage.getItem("demon_sorting_mode") ?? "Alphabetical",
-      true
+      true,
     ); // default to alphabetical
   }
 
@@ -118,7 +122,7 @@ export class StatsViewer extends FilteredPaginator {
       nameSpan.innerText = name;
 
       this._name.appendChild(
-        getCountryFlag(nationality.nation, nationality.country_code)
+        getCountryFlag(nationality.nation, nationality.country_code),
       );
       this._name.appendChild(nameSpan);
 
@@ -127,8 +131,8 @@ export class StatsViewer extends FilteredPaginator {
           getSubdivisionFlag(
             nationality.subdivision.name,
             nationality.country_code,
-            nationality.subdivision.iso_code
-          )
+            nationality.subdivision.iso_code,
+          ),
         );
       } else {
         // needed for layout
@@ -143,9 +147,9 @@ export class StatsViewer extends FilteredPaginator {
     this._hardest.appendChild(
       hardest === undefined
         ? document.createTextNode(
-            tr("demonlist", "statsviewer", "statsviewer.value-none")
+            tr("demonlist", "statsviewer", "statsviewer.value-none"),
           )
-        : this.formatDemon(hardest)
+        : this.formatDemon(hardest),
     );
   }
 
@@ -158,14 +162,15 @@ export class StatsViewer extends FilteredPaginator {
         ["main"]: main,
         ["extended"]: extended,
         ["legacy"]: legacy,
-      }
+      },
     );
   }
 
   formatDemon(demon, link, dontStyle) {
     var element;
 
-    const demonPositionKey = window.active_list == "demonlist" ? "rated_position" : "position";
+    const demonPositionKey =
+      window.active_list == "demonlist" ? "rated_position" : "position";
 
     if (dontStyle) {
       element = document.createElement("span");
@@ -181,7 +186,7 @@ export class StatsViewer extends FilteredPaginator {
     }
 
     let a = document.createElement("a");
-    a.href = link ?? "/demonlist/permalink/" + demon.id + "/";
+    a.href = link ?? `/${window.active_list}/permalink/` + demon.id + "/";
     a.textContent = demon.name;
 
     element.appendChild(a);
@@ -235,8 +240,8 @@ export function formatInto(parent, childs) {
   } else {
     parent.appendChild(
       document.createTextNode(
-        tr("demonlist", "statsviewer", "statsviewer.value-none")
-      )
+        tr("demonlist", "statsviewer", "statsviewer.value-none"),
+      ),
     );
   }
 }
@@ -259,15 +264,33 @@ export class InteractiveWorldMap {
     this.relativeMousePosition = { x: 0, y: 0 };
     this.lastTouchPosition = { x: 0, y: 0 };
 
-    const link = document.createElementNS("http://www.w3.org/1999/xhtml", "link");
-    link.setAttribute("href", `/${document.documentElement.dataset.list}/statsviewer/heatmap.css`);
+    const link = document.createElementNS(
+      "http://www.w3.org/1999/xhtml",
+      "link",
+    );
+    link.setAttribute(
+      "href",
+      `/${document.documentElement.dataset.list}/statsviewer/heatmap.css`,
+    );
     link.setAttribute("rel", "stylesheet");
     link.setAttribute("type", "text/css");
     this.svg.appendChild(link);
 
-    const mapTheme = new ThemedElement(this.map, (map, theme) => transitionTheme(theme, map.contentDocument, map.contentDocument.documentElement, () => {
-      map.contentDocument.documentElement.style.setProperty("--color-pc-button-bg", getComputedStyle(document.documentElement).getPropertyValue("--color-pc-button-bg"));
-    }));
+    const mapTheme = new ThemedElement(this.map, (map, theme) =>
+      transitionTheme(
+        theme,
+        map.contentDocument,
+        map.contentDocument.documentElement,
+        () => {
+          map.contentDocument.documentElement.style.setProperty(
+            "--color-pc-button-bg",
+            getComputedStyle(document.documentElement).getPropertyValue(
+              "--color-pc-button-bg",
+            ),
+          );
+        },
+      ),
+    );
     this.map.style = "visibility: visible";
     mapTheme.toggleFn(this.map, currentTheme());
 
@@ -277,7 +300,7 @@ export class InteractiveWorldMap {
     this.currentlySelected = undefined;
 
     for (let subdivision of this.map.contentDocument.querySelectorAll(
-      ".land-with-states .state"
+      ".land-with-states .state",
     )) {
       subdivision.addEventListener("click", (event) => {
         // states are overlaid over the .land-with-states. We need to stop propagation as otherwise the
@@ -286,7 +309,7 @@ export class InteractiveWorldMap {
 
         if (
           !findParentWithClass(subdivision, "continent").classList.contains(
-            "selectable"
+            "selectable",
           )
         )
           return;
@@ -300,12 +323,12 @@ export class InteractiveWorldMap {
     }
 
     for (let clickable of this.map.contentDocument.querySelectorAll(
-      ".land, .island, .land-with-states"
+      ".land, .island, .land-with-states",
     )) {
       clickable.addEventListener("click", () => {
         if (
           !findParentWithClass(clickable, "continent").classList.contains(
-            "selectable"
+            "selectable",
           )
         )
           return;
@@ -380,7 +403,7 @@ export class InteractiveWorldMap {
 
   showSubdivisions() {
     for (let divided of this.map.contentDocument.querySelectorAll(
-      ".land-with-states"
+      ".land-with-states",
     )) {
       divided.classList.add("subdivided");
     }
@@ -388,7 +411,7 @@ export class InteractiveWorldMap {
 
   hideSubdivisions() {
     for (let divided of this.map.contentDocument.querySelectorAll(
-      ".land-with-states.subdivided"
+      ".land-with-states.subdivided",
     )) {
       divided.classList.remove("subdivided");
     }
@@ -412,7 +435,7 @@ export class InteractiveWorldMap {
       for (let listener of this.selectionListeners)
         listener(
           countryCode.toUpperCase(),
-          subdivisionCode === "" ? undefined : subdivisionCode.toUpperCase()
+          subdivisionCode === "" ? undefined : subdivisionCode.toUpperCase(),
         );
   }
 
@@ -440,7 +463,7 @@ export class InteractiveWorldMap {
 
     // TODO(patrick): pretty sure this is nonsense?
     this.dragDistance += Math.sqrt(
-      this.translate.x * this.translate.x + this.translate.y * this.translate.y
+      this.translate.x * this.translate.x + this.translate.y * this.translate.y,
     );
 
     this.svg.style.transform =
@@ -478,7 +501,7 @@ export class InteractiveWorldMap {
       if (this.isDragging) {
         this.doDrag(
           event.touches[0].pageX - this.lastTouchPosition.x,
-          event.touches[0].pageY - this.lastTouchPosition.y
+          event.touches[0].pageY - this.lastTouchPosition.y,
         );
 
         this.setLastPosFromTouchEvent(event);
