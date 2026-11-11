@@ -10,6 +10,8 @@ use pointercrate_core_api::{
     response::Response2,
 };
 use pointercrate_core_macros::localized;
+#[cfg(feature = "player_channels")]
+use pointercrate_demonlist::player::channel::PlayerChannels;
 use pointercrate_demonlist::{
     error::DemonlistError,
     player::claim::PlayerClaim,
@@ -220,7 +222,7 @@ pub async fn audit(record_id: i32, mut auth: Auth<ApiToken>) -> Result<Json<Vec<
 #[localized]
 #[rocket::patch("/<record_id>/", data = "<patch>")]
 pub async fn patch(
-    record_id: i32, mut auth: Auth<ApiToken>, precondition: Precondition, patch: Json<PatchRecord>,
+    record_id: i32, mut auth: Auth<ApiToken>, precondition: Precondition, patch: Json<PatchRecord>, pool: &State<PointercratePool>,
 ) -> Result<Tagged<FullRecord>> {
     let record = FullRecord::by_id(record_id, &mut auth.connection).await?;
 
@@ -236,6 +238,17 @@ pub async fn patch(
         .await?;
 
     auth.commit().await?;
+
+    #[cfg(feature = "player_channels")]
+    if record.status == RecordStatus::Approved {
+        if let Some(ref video) = record.video {
+            tokio::spawn(PlayerChannels::add_channel_from_video(
+                record.player.id,
+                video.to_string(),
+                pool.connection().await?,
+            ));
+        }
+    }
 
     Ok(Tagged(record))
 }

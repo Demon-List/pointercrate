@@ -2093,7 +2093,9 @@ dependencies = [
  "log",
  "pointercrate-core",
  "pointercrate-user",
+ "reqwest",
  "serde",
+ "serde_json",
  "sqlx",
  "url",
 ]

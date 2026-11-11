@@ -8,6 +8,8 @@ use pointercrate_core_api::{
     response::Response2,
 };
 use pointercrate_core_macros::localized;
+#[cfg(feature = "player_channels")]
+use pointercrate_demonlist::player::channel::PlayerChannels;
 use pointercrate_demonlist::{
     creator::{Creator, PostCreator},
     demon::{
@@ -20,7 +22,7 @@ use pointercrate_demonlist::{
 };
 use pointercrate_user::auth::ApiToken;
 use pointercrate_user_api::auth::Auth;
-use rocket::{http::Status, serde::json::Json, State};
+use rocket::{http::Status, serde::json::Json, tokio, State};
 
 #[localized]
 #[rocket::get("/")]
@@ -71,7 +73,7 @@ pub async fn movement_log(list: ClientList, demon_id: i32, pool: &State<Pointerc
 #[localized]
 #[rocket::post("/", data = "<data>")]
 pub async fn post(
-    mut auth: Auth<ApiToken>, data: Json<PostDemon>, ratelimits: &State<DemonlistRatelimits>,
+    mut auth: Auth<ApiToken>, data: Json<PostDemon>, ratelimits: &State<DemonlistRatelimits>, pool: &State<PointercratePool>,
 ) -> Result<Response2<Tagged<FullDemon>>> {
     auth.require_permission(LIST_MODERATOR)?;
 
@@ -83,6 +85,15 @@ pub async fn post(
 
     let demon_id = demon.demon.base.id;
 
+    #[cfg(feature = "player_channels")]
+    if let Some(ref video) = demon.demon.video {
+        tokio::spawn(PlayerChannels::add_channel_from_video(
+            demon.demon.verifier.id,
+            video.to_string(),
+            pool.connection().await?,
+        ));
+    }
+
     Ok(Response2::tagged(demon)
         .status(Status::Created)
         .with_header("Location", format!("/api/v2/demons/{}/", demon_id)))
@@ -91,7 +102,7 @@ pub async fn post(
 #[localized]
 #[rocket::patch("/<demon_id>/", data = "<patch>")]
 pub async fn patch(
-    demon_id: i32, mut auth: Auth<ApiToken>, precondition: Precondition, patch: Json<PatchDemon>,
+    demon_id: i32, mut auth: Auth<ApiToken>, precondition: Precondition, patch: Json<PatchDemon>, pool: &State<PointercratePool>,
 ) -> Result<Tagged<FullDemon>> {
     auth.require_permission(LIST_MODERATOR)?;
 
@@ -102,6 +113,15 @@ pub async fn patch(
         .await?;
 
     auth.commit().await?;
+
+    #[cfg(feature = "player_channels")]
+    if let Some(ref video) = demon.demon.video {
+        tokio::spawn(PlayerChannels::add_channel_from_video(
+            demon.demon.verifier.id,
+            video.to_string(),
+            pool.connection().await?,
+        ));
+    }
 
     Ok(Tagged(demon))
 }

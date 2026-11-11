@@ -16,6 +16,8 @@ use pointercrate_demonlist::{
     },
     LIST_HELPER, LIST_MODERATOR,
 };
+#[cfg(feature = "player_channels")]
+use pointercrate_demonlist::player::channel::{patch::PatchPlayerChannels, post::PostPlayerChannel, PlayerChannels};
 use pointercrate_user::{auth::ApiToken, MODERATOR};
 use pointercrate_user_api::auth::Auth;
 use rocket::{http::Status, serde::json::Json, State};
@@ -179,6 +181,43 @@ pub async fn paginate_claims(
     auth.require_permission(MODERATOR)?;
 
     Ok(pagination_response("/api/v1/players/claims/", pagination.0, &mut auth.connection).await?)
+}
+
+#[cfg(feature = "player_channels")]
+#[localized]
+#[rocket::get("/<player_id>/channels/")]
+pub async fn get_player_channels(player_id: i32, mut auth: Auth<ApiToken>) -> Result<Json<PlayerChannels>> {
+    auth.require_permission(MODERATOR)?;
+
+    Ok(Json(PlayerChannels::channels_for_player(&player_id, &mut auth.connection).await?))
+}
+
+#[cfg(feature = "player_channels")]
+#[localized]
+#[rocket::patch("/<player_id>/channels/", data = "<data>")]
+pub async fn patch_player_channel(player_id: i32, data: Json<PatchPlayerChannels>, mut auth: Auth<ApiToken>) -> Result<Json<PlayerChannels>> {
+    auth.require_permission(MODERATOR)?;
+
+    PlayerChannels::set_player_channel_validity(player_id, &data.0, &mut auth.connection).await?;
+    let channels = PlayerChannels::channels_for_player(&player_id, &mut auth.connection).await?;
+
+    auth.commit().await?;
+
+    Ok(Json(channels))
+}
+
+#[cfg(feature = "player_channels")]
+#[localized]
+#[rocket::post("/<player_id>/channels/", data = "<data>")]
+pub async fn post_player_channel(player_id: i32, data: Json<PostPlayerChannel>, mut auth: Auth<ApiToken>) -> Result<Json<PlayerChannels>> {
+    auth.require_permission(MODERATOR)?;
+
+    PlayerChannels::add_player_channel(player_id, &data.0, &mut auth.connection).await?;
+    let channels = PlayerChannels::channels_for_player(&player_id, &mut auth.connection).await?;
+
+    auth.commit().await?;
+
+    Ok(Json(channels))
 }
 
 #[cfg(feature = "geolocation")]

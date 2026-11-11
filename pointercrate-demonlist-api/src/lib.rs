@@ -23,7 +23,7 @@ pub fn setup(rocket: Rocket<Build>) -> Rocket<Build> {
         pointercrate_integrate::set_gd_connector_endpoint(endpoint);
     }
 
-    #[cfg_attr(not(feature = "geolocation"), allow(unused_mut))]
+    #[cfg_attr(not(any(feature = "geolocation", feature = "player_channels")), allow(unused_mut))]
     let mut player_routes = rocket::routes![
         endpoints::player::get,
         endpoints::player::get_me,
@@ -36,6 +36,13 @@ pub fn setup(rocket: Rocket<Build>) -> Rocket<Build> {
         endpoints::player::paginate_claims,
         endpoints::player::delete_claim,
     ];
+
+    #[cfg(feature = "player_channels")]
+    player_routes.extend(rocket::routes![
+        endpoints::player::get_player_channels,
+        endpoints::player::patch_player_channel,
+        endpoints::player::post_player_channel,
+    ]);
 
     #[cfg(feature = "geolocation")]
     player_routes.extend(rocket::routes![endpoints::player::geolocate_nationality]);

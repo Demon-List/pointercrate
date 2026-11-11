@@ -8,6 +8,7 @@ edition.workspace = true
 
 [dependencies]
 serde = "1.0.228"
+serde_json = { version = "1.0.149", optional = true }
 sqlx = { workspace = true }
 derive_more = { version = "2.0.1", features = ["display"] }
 pointercrate-core = {path = "../pointercrate-core"}
@@ -16,3 +17,7 @@ log = "0.4.29"
 futures = "0.3.32"
 chrono = {version = "0.4.44", features = ["serde"]}
 url = "2.5.8"
+reqwest = {version = "0.13.*", features = ["json"], optional = true}
+
+[features]
+player_channels = ["dep:reqwest", "dep:serde_json"]

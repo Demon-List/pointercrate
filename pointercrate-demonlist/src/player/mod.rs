@@ -12,6 +12,8 @@ use std::{
     hash::{Hash, Hasher},
 };
 
+#[cfg(feature = "player_channels")]
+pub mod channel;
 pub mod claim;
 mod get;
 mod paginate;
