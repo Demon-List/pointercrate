@@ -39,7 +39,7 @@ pub async fn paginate(mut auth: Auth<ApiToken>, data: Query<UserPagination>) -> 
 }
 
 #[localized]
-#[rocket::get("/<user_id>/")]
+#[rocket::get("/<user_id>/", rank = 1)]
 pub async fn get_user(mut auth: Auth<ApiToken>, user_id: i32) -> Result<Tagged<User>> {
     let user = User::by_id(user_id, &mut auth.connection).await?;
 

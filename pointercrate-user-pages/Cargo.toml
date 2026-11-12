@@ -18,3 +18,4 @@ sqlx = { workspace = true }
 [features]
 legacy_accounts = ["pointercrate-user/legacy_accounts"]
 oauth2 = ["pointercrate-user/oauth2"]
+discord_linking = []

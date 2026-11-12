@@ -27,6 +27,14 @@ pub fn setup(mut rocket: Rocket<Build>) -> Rocket<Build> {
         pages::logout,
         pages::register_page
     ];
+    let mut user_routes = rocket::routes![
+        endpoints::user::paginate,
+        endpoints::user::get_user,
+        endpoints::user::patch_user,
+        endpoints::user::delete_user
+    ];
+
+    
     #[cfg(feature = "legacy_accounts")]
     auth_routes.extend(rocket::routes![endpoints::auth::register]);
     #[cfg(feature = "legacy_accounts")]
@@ -38,18 +46,12 @@ pub fn setup(mut rocket: Rocket<Build>) -> Rocket<Build> {
     {
         rocket = rocket.manage(oauth::GoogleCertificateStore::default());
     }
+    #[cfg(feature = "discord_linking")]
+    user_routes.extend(rocket::routes![endpoints::discord::link_discord, endpoints::discord::link_discord_callback]);
 
     rocket
         .manage(ratelimits)
         .mount("/api/v1/auth/", auth_routes)
-        .mount(
-            "/api/v1/users/",
-            rocket::routes![
-                endpoints::user::paginate,
-                endpoints::user::get_user,
-                endpoints::user::patch_user,
-                endpoints::user::delete_user
-            ],
-        )
+        .mount("/api/v1/users/", user_routes)
         .mount("/", page_routes)
 }

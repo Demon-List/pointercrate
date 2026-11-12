@@ -26,6 +26,8 @@ pub mod error;
 mod paginate;
 mod patch;
 mod video;
+#[cfg(feature = "discord_linking")]
+pub mod discord;
 
 pub const ADMINISTRATOR: Permission = Permission::new("user-permissions.administrator", 0x4000);
 pub const MODERATOR: Permission = Permission::new("user-permissions.moderator", 0x2000);

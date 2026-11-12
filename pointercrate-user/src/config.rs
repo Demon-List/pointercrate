@@ -23,3 +23,18 @@ pub(crate) fn secret() -> Vec<u8> {
 pub fn google_client_id() -> String {
     std::env::var("GOOGLE_CLIENT_ID").expect("GOOGLE_CLIENT_ID is not set")
 }
+
+#[cfg(feature = "discord_linking")]
+pub fn discord_client_id() -> String {
+    std::env::var("DISCORD_CLIENT_ID").expect("DISCORD_CLIENT_ID is not set")
+}
+
+#[cfg(feature = "discord_linking")]
+pub fn discord_client_secret() -> String {
+    std::env::var("DISCORD_CLIENT_SECRET").expect("DISCORD_CLIENT_SECRET is not set")
+}
+
+#[cfg(feature = "discord_linking")]
+pub fn discord_redirect_uri() -> String {
+    std::env::var("DISCORD_REDIRECT_URI").expect("DISCORD_REDIRECT_URI is not set")
+}
