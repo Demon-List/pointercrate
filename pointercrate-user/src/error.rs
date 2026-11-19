@@ -1,3 +1,4 @@
+use oauth2::{basic::BasicErrorResponseType, StandardErrorResponse};
 use pointercrate_core::{
     error::{CoreError, PointercrateError},
     localization::tr,
@@ -31,6 +32,16 @@ pub enum UserError {
         non_assignable: HashSet<Permission>,
     },
 
+    /// `403 FORBIDDEN` error returned when a user attempts to continue a discord auth flow they did not initiate
+    ///
+    /// Error Code `40306`
+    DiscordAuthInitiatorMismatch,
+
+    /// `403 FORBIDDEN` error returned when the Discord OAuth token exchange action fails on Discord's API
+    ///
+    /// Error Code `40307`
+    DiscordAuthInvalidTokenExchange(StandardErrorResponse<BasicErrorResponseType>),
+
     UserNotFound {
         user_id: i32,
     },
@@ -61,12 +72,19 @@ pub enum UserError {
     /// Error Code `42226`
     NotYouTube,
 
-    /// `422 UNPROCESSABL ENTITY` variant indicating that the attempted operation can only be
+    /// `422 UNPROCESSABLE ENTITY` variant indicating that the attempted operation can only be
     /// performed on a legacy, password-based account (for example, trying to change password
     /// for a non-legacy account).
     ///
     /// Error Code `42234`
     NonLegacyAccount,
+
+    /// `500 INTERNAL SERVER ERROR` variant indicating that the reqwest client failed to initialize
+    ///
+    /// Error Code `42234`
+    HttpClientFailed,
+
+    DiscordAuthTokenExchangeFailed,
 }
 
 impl std::error::Error for UserError {}
@@ -88,6 +106,8 @@ impl PointercrateError for UserError {
             DeleteSelf => 40302,
             PatchSelf => 40303,
             PermissionNotAssignable { .. } => 40305,
+            DiscordAuthInitiatorMismatch => 40306,
+            DiscordAuthInvalidTokenExchange(_) => 40307,
             UserNotFound { .. } => 40401,
             UserNotFoundName { .. } => 40401,
             NameTaken => 40902,
@@ -95,6 +115,8 @@ impl PointercrateError for UserError {
             InvalidPassword => 42204,
             NotYouTube => 42226,
             NonLegacyAccount => 42234,
+            HttpClientFailed => 50001,
+            DiscordAuthTokenExchangeFailed => 50002,
         }
     }
 }
@@ -119,6 +141,8 @@ impl Display for UserError {
                         .collect::<Vec<String>>()
                         .join(", ")
                 ),
+                UserError::DiscordAuthInitiatorMismatch => tr("error-user-discordauthinitiatormismatch"),
+                UserError::DiscordAuthInvalidTokenExchange(err) => trp!("error-user-discordauthinvalidtokenexchange", "error-desc" = err.error_description()),
                 UserError::UserNotFound { user_id } => trp!("error-user-usernotfound", "user-id" = user_id),
                 UserError::UserNotFoundName { user_name } => trp!("error-user-usernotfoundname", "user-name" = user_name),
                 UserError::NameTaken => tr("error-user-nametaken"),
@@ -126,6 +150,8 @@ impl Display for UserError {
                 UserError::InvalidPassword => tr("error-user-invalidpassword"),
                 UserError::NotYouTube => tr("error-user-notyoutube"),
                 UserError::NonLegacyAccount => tr("error-user-nonlegacyaccount"),
+                UserError::HttpClientFailed => tr("error-user-httpclientfailed"),
+                UserError::DiscordAuthTokenExchangeFailed => tr("error-user-discordauthtokenexchangefailed"),
             }
         )
     }

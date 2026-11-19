@@ -9,6 +9,10 @@ error-user-invalidusername = Invalid display or username! The name must be at le
 error-user-invalidpassword = Invalid password! The password must be at least 10 characters long
 error-user-notyoutube = The given URL is no YouTube URL
 error-user-nonlegacyaccount = The given operation (change password) is invalid on non-legacy account, as password login is not supported for these
+error-user-discordauthinitiatormismatch = You cannot complete a Discord OAuth request you did not initiate.
+error-user-discordauthinvalidtokenexchange = Invalid Discord OAuth token exchange failed: { $error-desc }
+error-user-httpclientfailed = There was a problem making a request to the Discord OAuth API.
+error-user-discordauthtokenexchangefailed = Discord OAuth token exchange failed.
 
 error-user-ratelimit-registration = Too many registrations!
 error-user-ratelimit-soft-registration = Too many failed registration attempts!

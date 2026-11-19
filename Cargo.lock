@@ -2258,6 +2258,7 @@ dependencies = [
  "pointercrate-core-api",
  "pointercrate-core-macros",
  "pointercrate-core-pages",
+ "pointercrate-demonlist",
  "pointercrate-user",
  "pointercrate-user-pages",
  "reqwest 0.13.2",

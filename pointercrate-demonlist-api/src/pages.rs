@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use pointercrate_core_macros::{localized, themed};
 use rocket::{response::Redirect, State};
 
-use chrono::{DateTime, Datelike, FixedOffset, NaiveDate, Utc};
+use chrono::{DateTime, FixedOffset, NaiveDate, Utc};
 use pointercrate_core::{audit::AuditLogEntryType, pool::PointercratePool, theme::Theme};
 use pointercrate_core_api::{
     error::Result,

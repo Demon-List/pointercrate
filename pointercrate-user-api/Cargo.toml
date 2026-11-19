@@ -15,6 +15,7 @@ pointercrate-core = { path = "../pointercrate-core" }
 pointercrate-core-api = { path = "../pointercrate-core-api" }
 pointercrate-core-pages = { path = "../pointercrate-core-pages" }
 pointercrate-core-macros = { path = "../pointercrate-core-macros" }
+pointercrate-demonlist = { path = "../pointercrate-demonlist" }
 serde_urlencoded = "0.7.0"
 log = "0.4.29"
 base64 = "0.22.1"
@@ -35,4 +36,4 @@ oauth2 = [
     "chrono",
     "dep:reqwest",
 ]
-discord_linking = ["pointercrate-user/discord_linking", "dep:reqwest"]
+discord_linking = ["pointercrate-user/discord_linking", "pointercrate-demonlist/player_channels", "dep:reqwest"]

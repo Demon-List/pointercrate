@@ -3,7 +3,7 @@ use oauth2::{
     Client, EmptyExtraTokenFields, EndpointNotSet, EndpointSet, RevocationErrorResponseType, StandardErrorResponse, StandardRevocableToken,
     StandardTokenIntrospectionResponse, StandardTokenResponse,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sqlx::PgConnection;
 
 use crate::config::{discord_client_id, discord_client_secret, discord_redirect_uri};
@@ -17,11 +17,16 @@ pub struct DiscordUser {
 
 #[derive(Deserialize)]
 pub struct DiscordConnection {
+    pub id: String,
     #[serde(rename(deserialize = "type"))]
     pub connection_type: String,
-    pub revoked: bool,
     pub verified: bool,
-    pub visibility: bool
+}
+
+#[derive(Serialize)]
+pub struct DiscordDataFields {
+    pub discord_id: Option<String>,
+    pub discord_username: Option<String>
 }
 
 type BasicClientWithToken = Client<
@@ -92,16 +97,17 @@ impl DiscordAuthRequestData {
 }
 
 impl DiscordUser {
-    pub async fn set_member_discord_data(connection: &mut PgConnection, member_id: i32, data: Self) -> Result<()> {
-        sqlx::query!(
-            "UPDATE members SET discord_id = $1, discord_username = $2 WHERE member_id = $3",
+    pub async fn set_member_discord_data(connection: &mut PgConnection, member_id: i32, data: Self) -> Result<DiscordDataFields> {
+        let row = sqlx::query_as!(
+            DiscordDataFields,
+            "UPDATE members SET discord_id = $1, discord_username = $2 WHERE member_id = $3 RETURNING discord_id, discord_username",
             data.id,
             data.username,
             member_id
         )
-        .execute(connection)
+        .fetch_one(connection)
         .await?;
 
-        Ok(())
+        Ok(row)
     }
 }

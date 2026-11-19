@@ -1,7 +1,7 @@
 use pointercrate_core::etag::Taggable;
 use pointercrate_demonlist::{
     demon::{recompute_rated_positions, Demon, FullDemon},
-    player::{recompute_scores, DatabasePlayer, FullPlayer, Player},
+    player::{recompute_scores, DatabasePlayer, FullPlayer},
     record::RecordStatus,
     LIST_MODERATOR,
 };
@@ -10,10 +10,6 @@ use pointercrate_test::TestClient;
 use pointercrate_user::auth::{AuthenticatedUser, PasswordOrBrowser};
 use rocket::http::Status;
 use sqlx::{PgConnection, Pool, Postgres};
-use std::{
-    collections::hash_map::DefaultHasher,
-    hash::{Hash, Hasher},
-};
 
 fn ranking_contains(ranking: &[serde_json::Value], name: &str) -> bool {
     ranking.iter().any(|player| player["name"].as_str() == Some(name))

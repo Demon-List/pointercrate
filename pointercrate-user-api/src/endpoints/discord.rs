@@ -1,14 +1,16 @@
 use std::net::IpAddr;
 
-use oauth2::{AuthorizationCode, CsrfToken, PkceCodeChallenge, PkceCodeVerifier, Scope};
-use pointercrate_core::error::CoreError::InternalServerError;
-use pointercrate_core_api::error::{ErrorResponder, Result};
+use oauth2::{AuthorizationCode, CsrfToken, PkceCodeChallenge, PkceCodeVerifier, Scope, TokenResponse as _};
+use pointercrate_core::error::CoreError;
+use pointercrate_core_api::error::Result;
 use pointercrate_core_macros::localized;
+use pointercrate_demonlist::player::{channel::PlayerChannels, claim::PlayerClaim};
 use pointercrate_user::{
     auth::ApiToken,
-    discord::{get_discord_client, DiscordAuthRequestData, DiscordUser, DiscordConnection},
+    discord::{get_discord_client, DiscordAuthRequestData, DiscordConnection, DiscordDataFields, DiscordUser},
+    error::UserError::{self, HttpClientFailed},
 };
-use rocket::{http::Status, response::Redirect, State}
+use rocket::{response::Redirect, serde::json::Json, State};
 
 use crate::{auth::Auth, ratelimits::UserRatelimits};
 
@@ -25,41 +27,53 @@ pub async fn link_discord(mut auth: Auth<ApiToken>, ratelimits: &State<UserRatel
         .set_pkce_challenge(pkce_challenge)
         .url();
 
+    let member_id = auth.user.user().id;
+
     DiscordAuthRequestData::create(
         &mut auth.connection,
         DiscordAuthRequestData::build(csrf_token.into_secret(), pkce_verifier.into_secret()),
-        auth.user.into_user().id,
+        member_id,
     )
     .await?;
+    auth.commit().await?;
 
     Ok(Redirect::to(auth_url.to_string()))
 }
 
 #[localized]
 #[rocket::get("/discord/callback/?<code>&<state>")]
-pub async fn link_discord_callback(mut auth: Auth<ApiToken>, code: String, state: String) -> Result<Status> {
+pub async fn link_discord_callback(mut auth: Auth<ApiToken>, code: String, state: String) -> Result<Json<DiscordDataFields>> {
     let client = get_discord_client();
     let code = AuthorizationCode::new(code);
 
     let (request_data, initiator_id) = DiscordAuthRequestData::take(&mut auth.connection, &state).await?;
 
     if initiator_id != auth.user.user().id {
-        // return error
-        unimplemented!()
+        return Err(UserError::DiscordAuthInitiatorMismatch.into());
     }
 
     let pkce_verifier = PkceCodeVerifier::new(request_data.pkce_verifier);
 
-    let http_client = match reqwest::ClientBuilder::new().redirect(reqwest::redirect::Policy::none()).build() {
-        Ok(client) => Ok(client),
-        Err(e) => Err(InternalServerError),
-    }?;
+    let oauth_http_client = oauth2::reqwest::ClientBuilder::new()
+        .redirect(oauth2::reqwest::redirect::Policy::none())
+        .build()
+        .map_err(|_| HttpClientFailed)?;
 
-    let token = client
+    let http_client = reqwest::ClientBuilder::new()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .map_err(|_| HttpClientFailed)?;
+
+    let token = match client
         .exchange_code(code)
         .set_pkce_verifier(pkce_verifier)
-        .request_async(&http_client)
-        .await?;
+        .request_async(&oauth_http_client)
+        .await
+    {
+        Ok(token) => Ok(token),
+        Err(oauth2::RequestTokenError::ServerResponse(response)) => Err(UserError::DiscordAuthInvalidTokenExchange(response)),
+        Err(_) => Err(UserError::DiscordAuthTokenExchangeFailed),
+    }?;
 
     let discord_user_result = http_client
         .get("https://discord.com/api/users/@me")
@@ -69,29 +83,57 @@ pub async fn link_discord_callback(mut auth: Auth<ApiToken>, code: String, state
 
     let discord_user: DiscordUser = match discord_user_result {
         Ok(res) => match res.json().await {
-            Ok(u) => u,
-            Err(_) => return Err(InternalServerError),
+            Ok(u) => Ok(u),
+            Err(_) => Err(CoreError::UnprocessableEntity.into()),
         },
-        Err(_) => return Err(InternalServerError),
+        Err(_) => Err(UserError::HttpClientFailed),
+    }?;
+
+    let discord_data = DiscordUser::set_member_discord_data(&mut auth.connection, initiator_id, discord_user).await?;
+
+    // Check for a pending player claim from this user
+    let player_claim = PlayerClaim::by_user(auth.user.user().id, &mut auth.connection).await?;
+
+    match player_claim {
+        Some(player_claim) if !player_claim.verified => {
+            let discord_connections_result = http_client
+                .get("https://discord.com/api/users/@me/connections")
+                .bearer_auth(token.access_token().secret())
+                .send()
+                .await;
+
+            let connections: Vec<DiscordConnection> = match discord_connections_result {
+                Ok(res) => match res.json().await {
+                    Ok(u) => Ok(u),
+                    Err(_) => Err(CoreError::UnprocessableEntity.into()),
+                },
+                Err(_) => Err(UserError::HttpClientFailed),
+            }?;
+
+            let linked_youtube_ids = connections
+                .iter()
+                .filter_map(|conn| {
+                    if conn.verified && conn.connection_type == "youtube" {
+                        Some(conn.id.clone())
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<String>>();
+
+            let player_channels = PlayerChannels::channels_for_player(&player_claim.player.id, &mut auth.connection).await?;
+
+            if linked_youtube_ids.iter().any(|id| player_channels.all_channel_ids.contains(id)) {
+                sqlx::query!("UPDATE player_claims SET verified = TRUE WHERE member_id = $1", auth.user.user().id)
+                    .execute(&mut *auth.connection)
+                    .await
+                    .map_err(UserError::from)?;
+            }
+        },
+        _ => {},
     };
 
-    DiscordUser::set_member_discord_data(&mut auth.connection, initiator_id, discord_user)
-        .await
-        .expect("lol");
+    auth.commit().await?;
 
-    let discord_connections_result = http_client
-        .get("https://discord.com/api/users/@me/connections")
-        .bearer_auth(token.access_token().secret())
-        .send()
-        .await;
-
-    let discord_user: Vec<DiscordConnection> = match discord_connections_result {
-        Ok(res) => match res.json().await {
-            Ok(u) => u,
-            Err(_) => return Err(InternalServerError),
-        },
-        Err(_) => return Err(InternalServerError),
-    };
-
-    todo!("needs to find pending player claim, validate connection links against player channels: `PlayerChannels::channels_for_player`, approve the claim if exists")
+    Ok(Json(discord_data))
 }
