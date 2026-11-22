@@ -13,6 +13,8 @@ error-user-discordauthinitiatormismatch = You cannot complete a Discord OAuth re
 error-user-discordauthinvalidtokenexchange = Invalid Discord OAuth token exchange failed: { $error-desc }
 error-user-httpclientfailed = There was a problem making a request to the Discord OAuth API.
 error-user-discordauthtokenexchangefailed = Discord OAuth token exchange failed.
+error-user-discordauthnounverifiedplayerclaim = You do not have an unverified player claim.
+error-user-discordauthnomatchingyoutubeconnections = You do not have any verified YouTube connections on your Discord profile that match your records' videos.
 
 error-user-ratelimit-registration = Too many registrations!
 error-user-ratelimit-soft-registration = Too many failed registration attempts!

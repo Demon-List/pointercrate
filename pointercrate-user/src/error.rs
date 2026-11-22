@@ -50,6 +50,8 @@ pub enum UserError {
         user_name: String,
     },
 
+    DiscordAuthNoUnverifiedPlayerClaim,
+
     /// `409 CONFLICT` error returned if a user tries to register with a name that's already taken
     ///
     /// Error Code `40902`
@@ -78,6 +80,8 @@ pub enum UserError {
     ///
     /// Error Code `42234`
     NonLegacyAccount,
+
+    DiscordAuthNoMatchingYouTubeConnections,
 
     /// `500 INTERNAL SERVER ERROR` variant indicating that the reqwest client failed to initialize
     ///
@@ -110,11 +114,13 @@ impl PointercrateError for UserError {
             DiscordAuthInvalidTokenExchange(_) => 40307,
             UserNotFound { .. } => 40401,
             UserNotFoundName { .. } => 40401,
+            DiscordAuthNoUnverifiedPlayerClaim => 40402,
             NameTaken => 40902,
             InvalidUsername => 42202,
             InvalidPassword => 42204,
             NotYouTube => 42226,
             NonLegacyAccount => 42234,
+            DiscordAuthNoMatchingYouTubeConnections => 42236,
             HttpClientFailed => 50001,
             DiscordAuthTokenExchangeFailed => 50002,
         }
@@ -142,13 +148,16 @@ impl Display for UserError {
                         .join(", ")
                 ),
                 UserError::DiscordAuthInitiatorMismatch => tr("error-user-discordauthinitiatormismatch"),
-                UserError::DiscordAuthInvalidTokenExchange(err) => trp!("error-user-discordauthinvalidtokenexchange", "error-desc" = err.error_description()),
+                UserError::DiscordAuthInvalidTokenExchange(err) =>
+                    trp!("error-user-discordauthinvalidtokenexchange", "error-desc" = err.error_description()),
                 UserError::UserNotFound { user_id } => trp!("error-user-usernotfound", "user-id" = user_id),
                 UserError::UserNotFoundName { user_name } => trp!("error-user-usernotfoundname", "user-name" = user_name),
+                UserError::DiscordAuthNoUnverifiedPlayerClaim => tr("error-user-discordauthnounverifiedplayerclaim"),
                 UserError::NameTaken => tr("error-user-nametaken"),
                 UserError::InvalidUsername => tr("error-user-invalidusername"),
                 UserError::InvalidPassword => tr("error-user-invalidpassword"),
                 UserError::NotYouTube => tr("error-user-notyoutube"),
+                UserError::DiscordAuthNoMatchingYouTubeConnections => tr("error-user-discordauthnomatchingyoutubeconnctions"),
                 UserError::NonLegacyAccount => tr("error-user-nonlegacyaccount"),
                 UserError::HttpClientFailed => tr("error-user-httpclientfailed"),
                 UserError::DiscordAuthTokenExchangeFailed => tr("error-user-discordauthtokenexchangefailed"),

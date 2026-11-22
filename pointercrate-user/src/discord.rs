@@ -26,7 +26,7 @@ pub struct DiscordConnection {
 #[derive(Serialize)]
 pub struct DiscordDataFields {
     pub discord_id: Option<String>,
-    pub discord_username: Option<String>
+    pub discord_username: Option<String>,
 }
 
 type BasicClientWithToken = Client<
@@ -78,36 +78,18 @@ impl DiscordAuthRequestData {
 
         Ok(())
     }
-    pub async fn take(connection: &mut PgConnection, csrf_token: &String) -> Result<(Self, i32)> {
+    pub async fn take(connection: &mut PgConnection, csrf_token: &String, member_id: i32) -> Result<Self> {
         let row = sqlx::query!(
-            "DELETE FROM discord_oauth_requests WHERE csrf_token = $1 RETURNING csrf_token, pkce_verifier, member_id",
-            csrf_token
-        )
-        .fetch_one(connection)
-        .await?;
-
-        Ok((
-            Self {
-                pkce_verifier: row.pkce_verifier,
-                csrf_token: row.csrf_token,
-            },
-            row.member_id,
-        ))
-    }
-}
-
-impl DiscordUser {
-    pub async fn set_member_discord_data(connection: &mut PgConnection, member_id: i32, data: Self) -> Result<DiscordDataFields> {
-        let row = sqlx::query_as!(
-            DiscordDataFields,
-            "UPDATE members SET discord_id = $1, discord_username = $2 WHERE member_id = $3 RETURNING discord_id, discord_username",
-            data.id,
-            data.username,
+            "DELETE FROM discord_oauth_requests WHERE csrf_token = $1 AND member_id = $2 RETURNING csrf_token, pkce_verifier, member_id",
+            csrf_token,
             member_id
         )
         .fetch_one(connection)
         .await?;
 
-        Ok(row)
+        Ok(Self {
+            pkce_verifier: row.pkce_verifier,
+            csrf_token: row.csrf_token,
+        })
     }
 }
