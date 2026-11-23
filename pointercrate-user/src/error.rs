@@ -157,7 +157,7 @@ impl Display for UserError {
                 UserError::InvalidUsername => tr("error-user-invalidusername"),
                 UserError::InvalidPassword => tr("error-user-invalidpassword"),
                 UserError::NotYouTube => tr("error-user-notyoutube"),
-                UserError::DiscordAuthNoMatchingYouTubeConnections => tr("error-user-discordauthnomatchingyoutubeconnctions"),
+                UserError::DiscordAuthNoMatchingYouTubeConnections => tr("error-user-discordauthnomatchingyoutubeconnections"),
                 UserError::NonLegacyAccount => tr("error-user-nonlegacyaccount"),
                 UserError::HttpClientFailed => tr("error-user-httpclientfailed"),
                 UserError::DiscordAuthTokenExchangeFailed => tr("error-user-discordauthtokenexchangefailed"),

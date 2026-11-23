@@ -96,6 +96,25 @@ impl AccountPageTab for ListIntegrationTab {
                         }
                     }
                     @if let Some(ref claim) = player_claim {
+                        @if !claim.verified && cfg!(feature = "discord_linking") {
+                            div.overlined.pad #claims-discord-link-panel style="margin-top: 10px" {
+                                p.info-red.output style = "margin: 10px 0" {}
+                                div.flex.no-stretch style="justify-content: space-between; align-items: center" {
+                                    b {
+                                        (tr("claim-discord-link"))
+                                    }
+                                    a.button.blue.hover #claims-discord-link-button {
+                                        img src = "/static/demonlist/images/discord-logo.svg" alt = "" aria-hidden = "true"
+                                            style = "height: 1em; vertical-align: middle; filter: brightness(0) invert(1);";
+                                        (PreEscaped("&nbsp;"))
+                                        (tr("claim-discord-link.submit"))
+                                    }
+                                }
+                                p {
+                                    (tr("claim-discord-link.info"))
+                                }
+                            }
+                        }
                         @if claim.verified {
                             div.overlined.pad.js-collapse-content #claims-claim-panel style="display:none" {
                                 // It'd be neat to eliminate this feature and instead have this tied to the presence of a Box<dyn GeolocationProvider> state, but

@@ -24,6 +24,11 @@ pub struct DiscordConnection {
 }
 
 #[derive(Serialize)]
+pub struct DiscordAuthUrl {
+    pub url: String,
+}
+
+#[derive(Serialize)]
 pub struct DiscordDataFields {
     pub discord_id: Option<String>,
     pub discord_username: Option<String>,
@@ -78,18 +83,21 @@ impl DiscordAuthRequestData {
 
         Ok(())
     }
-    pub async fn take(connection: &mut PgConnection, csrf_token: &String, member_id: i32) -> Result<Self> {
+
+    pub async fn take(connection: &mut PgConnection, csrf_token: &String) -> Result<(Self, i32)> {
         let row = sqlx::query!(
-            "DELETE FROM discord_oauth_requests WHERE csrf_token = $1 AND member_id = $2 RETURNING csrf_token, pkce_verifier, member_id",
+            "DELETE FROM discord_oauth_requests WHERE csrf_token = $1 RETURNING csrf_token, pkce_verifier, member_id",
             csrf_token,
-            member_id
         )
         .fetch_one(connection)
         .await?;
 
-        Ok(Self {
-            pkce_verifier: row.pkce_verifier,
-            csrf_token: row.csrf_token,
-        })
+        Ok((
+            Self {
+                pkce_verifier: row.pkce_verifier,
+                csrf_token: row.csrf_token,
+            },
+            row.member_id,
+        ))
     }
 }

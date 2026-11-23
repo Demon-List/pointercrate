@@ -1,22 +1,39 @@
 use std::net::IpAddr;
 
+use rocket::{
+    http::{Cookie, CookieJar, SameSite},
+    time::Duration,
+};
+
 use oauth2::{AuthorizationCode, CsrfToken, PkceCodeChallenge, PkceCodeVerifier, Scope, TokenResponse as _};
-use pointercrate_core::{error::CoreError, pool::PointercratePool};
+use pointercrate_core::{
+    error::CoreError,
+    pool::{audit_connection, PointercratePool},
+};
 use pointercrate_core_api::error::Result;
 use pointercrate_core_macros::localized;
 use pointercrate_demonlist::player::{channel::PlayerChannels, claim::PlayerClaim};
 use pointercrate_user::{
     auth::ApiToken,
-    discord::{get_discord_client, DiscordAuthRequestData, DiscordConnection},
+    discord::{get_discord_client, DiscordAuthRequestData, DiscordAuthUrl, DiscordConnection},
     error::UserError::{self, HttpClientFailed},
 };
-use rocket::{response::Redirect, State};
+use rocket::{response::Redirect, serde::json::Json, State};
 
 use crate::{auth::Auth, ratelimits::UserRatelimits};
 
+/// new cookie binding a discord oauth flow to the browser that initiated it
+///
+/// we hit the callback endpoint as a redirect from discord and the normal access token has 
+/// `SameSite=Strict` so it doesn't function properly. this cookie is `SameSite=Lax` and
+/// must match the oauth `state` parameter, which identifies the member that initiated the flow
+const DISCORD_STATE_COOKIE: &str = "discord_oauth_state";
+
 #[localized]
-#[rocket::get("/discord/")]
-pub async fn link_discord(mut auth: Auth<ApiToken>, ratelimits: &State<UserRatelimits>, ip: IpAddr) -> Result<Redirect> {
+#[rocket::post("/discord/")]
+pub async fn link_discord(
+    mut auth: Auth<ApiToken>, ratelimits: &State<UserRatelimits>, ip: IpAddr, cookies: &CookieJar<'_>,
+) -> Result<Json<DiscordAuthUrl>> {
     ratelimits.discord_link_attempts(ip)?;
 
     let member_id = auth.user.user().id;
@@ -36,28 +53,52 @@ pub async fn link_discord(mut auth: Auth<ApiToken>, ratelimits: &State<UserRatel
         .set_pkce_challenge(pkce_challenge)
         .url();
 
+    let state = csrf_token.into_secret();
+
     DiscordAuthRequestData::create(
         &mut auth.connection,
-        DiscordAuthRequestData::build(csrf_token.into_secret(), pkce_verifier.into_secret()),
+        DiscordAuthRequestData::build(state.clone(), pkce_verifier.into_secret()),
         member_id,
     )
     .await?;
     auth.commit().await?;
 
-    Ok(Redirect::to(auth_url.to_string()))
+    cookies.add(
+        Cookie::build((DISCORD_STATE_COOKIE, state))
+            .http_only(true)
+            .same_site(SameSite::Lax)
+            .secure(!cfg!(debug_assertions))
+            .path("/api/v1/users/discord/")
+            .max_age(Duration::minutes(10)),
+    );
+
+    Ok(Json(DiscordAuthUrl { url: auth_url.to_string() }))
 }
 
 #[localized]
 #[rocket::get("/discord/callback/?<code>&<state>")]
+// we get here as a redirect from discord, so the normal access token cookie and the
+// X-CSRF-TOKEN header are unavailable. the member is identified via the OAuth `state` parameter and the
+// request is bound to the initiating browser via the DISCORD_STATE_COOKIE set in `link_discord`
 pub async fn link_discord_callback(
-    mut auth: Auth<ApiToken>, pool: &State<PointercratePool>, code: String, state: String,
+    pool: &State<PointercratePool>, cookies: &CookieJar<'_>, code: String, state: String,
 ) -> Result<Redirect> {
+    let state_cookie = cookies.get(DISCORD_STATE_COOKIE).map(|cookie| cookie.value().to_string());
+    cookies.remove(Cookie::build(DISCORD_STATE_COOKIE).path("/api/v1/users/discord/"));
+
+    if state_cookie.as_deref() != Some(state.as_str()) {
+        return Err(UserError::DiscordAuthInitiatorMismatch.into());
+    }
+
     let mut pool_connection = pool.connection().await?;
     let client = get_discord_client();
     let code = AuthorizationCode::new(code);
 
     // This should not get rolled back on error
-    let request_data = DiscordAuthRequestData::take(&mut pool_connection, &state, auth.user.user().id).await?;
+    let (request_data, member_id) = DiscordAuthRequestData::take(&mut pool_connection, &state).await?;
+
+    let mut connection = pool.transaction().await?;
+    audit_connection(&mut connection, member_id).await?;
 
     let pkce_verifier = PkceCodeVerifier::new(request_data.pkce_verifier);
 
@@ -83,7 +124,7 @@ pub async fn link_discord_callback(
     }?;
 
     // Check for a pending player claim from this user
-    let player_claim = match PlayerClaim::by_user(auth.user.user().id, &mut auth.connection).await? {
+    let player_claim = match PlayerClaim::by_user(member_id, &mut connection).await? {
         Some(claim) if !claim.verified => claim,
         _ => return Err(UserError::DiscordAuthNoUnverifiedPlayerClaim.into()),
     };
@@ -112,17 +153,17 @@ pub async fn link_discord_callback(
         })
         .collect::<Vec<String>>();
 
-    let player_channels = PlayerChannels::channels_for_player(&player_claim.player.id, &mut auth.connection).await?;
+    let player_channels = PlayerChannels::channels_for_player(&player_claim.player.id, &mut connection).await?;
 
     if !linked_youtube_ids.iter().any(|id| player_channels.all_channel_ids.contains(id)) {
         return Err(UserError::DiscordAuthNoMatchingYouTubeConnections.into());
     }
-    sqlx::query!("UPDATE player_claims SET verified = TRUE WHERE member_id = $1", auth.user.user().id)
-        .execute(&mut *auth.connection)
+    sqlx::query!("UPDATE player_claims SET verified = TRUE WHERE member_id = $1", member_id)
+        .execute(&mut *connection)
         .await
         .map_err(UserError::from)?;
 
-    auth.commit().await?;
+    connection.commit().await.map_err(CoreError::from)?;
 
-    Ok(Redirect::to("/account"))
+    Ok(Redirect::to("/account/"))
 }

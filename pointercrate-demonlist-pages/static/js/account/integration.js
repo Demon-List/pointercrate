@@ -236,6 +236,23 @@ export function initialize() {
       });
     });
 
+  let discordLinkPanel = document.getElementById("claims-discord-link-panel");
+
+  if (discordLinkPanel) {
+    let discordOutput = new Output(discordLinkPanel);
+
+    document
+      .getElementById("claims-discord-link-button")
+      .addEventListener("click", () => {
+        post("/api/v1/users/discord/")
+          .then((response) => {
+            // redirect to discord link
+            window.location.href = response.data.url;
+          })
+          .catch(displayError(discordOutput));
+      });
+  }
+
   let claimPanel = document.getElementById("claims-claim-panel");
 
   if (claimPanel) {

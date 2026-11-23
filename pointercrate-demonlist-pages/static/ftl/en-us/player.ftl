@@ -53,6 +53,11 @@ claim-geolocate = Geolocate statsviewer flag
     .edit-success = Set nationality to { $nationality }
     .edit-success-subdivision = Set nationality to { $nationality }/{ $subdivision }
 
+claim-discord-link = Verify via Discord
+    .info = If your Discord account has a verified YouTube connection matching one of the channels your claimed player's records were uploaded to, you can verify your claim instantly. You will be redirected to Discord and sent back to this page afterwards.
+
+    .submit = Link Discord
+
 claim-lock-submissions = Lock submissions
     .info = Whether submissions for your claimed player should be locked, meaning only you will be able to submit records for your claimed player (and only while logged in to this account holding the verified claim)
 
