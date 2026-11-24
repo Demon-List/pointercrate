@@ -12,7 +12,10 @@ use pointercrate_core::{
 };
 use pointercrate_core_api::{error::Result, response::Response2};
 use pointercrate_core_macros::localized;
-use pointercrate_demonlist::player::{channel::PlayerChannels, claim::PlayerClaim};
+use pointercrate_demonlist::{
+    error::DemonlistError,
+    player::{channel::PlayerChannels, claim::PlayerClaim},
+};
 use pointercrate_user::{
     auth::ApiToken,
     discord::{get_discord_client, DiscordAuthRequestData, DiscordAuthUrl, DiscordConnection},
@@ -155,13 +158,23 @@ pub async fn link_discord_callback(
 
     let player_channels = PlayerChannels::channels_for_player(&player_claim.player.id, &mut connection).await?;
 
-    if !linked_youtube_ids.iter().any(|id| player_channels.all_channel_ids.contains(id)) {
+    if !linked_youtube_ids.iter().any(|id| player_channels.channel_ids.contains(id)) {
         return Err(UserError::DiscordAuthNoMatchingYouTubeConnections.into());
     }
-    sqlx::query!("UPDATE player_claims SET verified = TRUE WHERE member_id = $1", member_id)
-        .execute(&mut *connection)
-        .await
-        .map_err(UserError::from)?;
+
+    match PlayerClaim::verified_claim_on(player_claim.player.id, &mut connection).await? {
+        Some(_) => return Err(DemonlistError::AlreadyClaimed.into()),
+        None => {
+            PlayerClaim {
+                user_id: member_id,
+                player_id: player_claim.player.id,
+                verified: player_claim.verified,
+                lock_submissions: player_claim.lock_submissions,
+            }
+            .set_verified(true, &mut connection)
+            .await?
+        },
+    }
 
     connection.commit().await.map_err(CoreError::from)?;
 
