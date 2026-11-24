@@ -52,7 +52,7 @@ pub async fn link_discord(
     let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
     let (auth_url, csrf_token) = client
         .authorize_url(CsrfToken::new_random)
-        .add_scopes(vec![Scope::new("identify".to_string()), Scope::new("connections".to_string())])
+        .add_scope(Scope::new("connections".to_string()))
         .set_pkce_challenge(pkce_challenge)
         .url();
 
