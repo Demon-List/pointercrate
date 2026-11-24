@@ -1,7 +1,7 @@
 use std::net::IpAddr;
 
 use rocket::{
-    http::{Cookie, CookieJar, SameSite},
+    http::{ContentType, Cookie, CookieJar, SameSite},
     time::Duration,
 };
 
@@ -10,7 +10,7 @@ use pointercrate_core::{
     error::CoreError,
     pool::{audit_connection, PointercratePool},
 };
-use pointercrate_core_api::error::Result;
+use pointercrate_core_api::{error::Result, response::Response2};
 use pointercrate_core_macros::localized;
 use pointercrate_demonlist::player::{channel::PlayerChannels, claim::PlayerClaim};
 use pointercrate_user::{
@@ -18,13 +18,13 @@ use pointercrate_user::{
     discord::{get_discord_client, DiscordAuthRequestData, DiscordAuthUrl, DiscordConnection},
     error::UserError::{self, HttpClientFailed},
 };
-use rocket::{response::Redirect, serde::json::Json, State};
+use rocket::{serde::json::Json, State};
 
 use crate::{auth::Auth, ratelimits::UserRatelimits};
 
 /// new cookie binding a discord oauth flow to the browser that initiated it
 ///
-/// we hit the callback endpoint as a redirect from discord and the normal access token has 
+/// we hit the callback endpoint as a redirect from discord and the normal access token has
 /// `SameSite=Strict` so it doesn't function properly. this cookie is `SameSite=Lax` and
 /// must match the oauth `state` parameter, which identifies the member that initiated the flow
 const DISCORD_STATE_COOKIE: &str = "discord_oauth_state";
@@ -82,7 +82,7 @@ pub async fn link_discord(
 // request is bound to the initiating browser via the DISCORD_STATE_COOKIE set in `link_discord`
 pub async fn link_discord_callback(
     pool: &State<PointercratePool>, cookies: &CookieJar<'_>, code: String, state: String,
-) -> Result<Redirect> {
+) -> Result<Response2<(ContentType, ())>> {
     let state_cookie = cookies.get(DISCORD_STATE_COOKIE).map(|cookie| cookie.value().to_string());
     cookies.remove(Cookie::build(DISCORD_STATE_COOKIE).path("/api/v1/users/discord/"));
 
@@ -165,5 +165,7 @@ pub async fn link_discord_callback(
 
     connection.commit().await.map_err(CoreError::from)?;
 
-    Ok(Redirect::to("/account/"))
+    // rocket's Redirect wont work properly here because of our auth cookie rules
+    // https://stackoverflow.com/questions/42216700/how-can-i-redirect-after-oauth2-with-samesite-strict-and-still-get-my-cookies
+    Ok(Response2::new((ContentType::HTML, ())).with_header("Refresh", "0; url=/account/"))
 }
