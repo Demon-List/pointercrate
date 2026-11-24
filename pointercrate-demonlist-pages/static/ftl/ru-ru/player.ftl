@@ -51,6 +51,11 @@ claim-geolocate = Указать флаг для панели статистик
     .edit-success = Страна указана как { $nationality }
     .edit-success-subdivision = Страна указана как { $nationality }/{ $subdivision }
 
+claim-discord-link = Verify via Discord
+    .info = If your Discord account has a verified YouTube connection matching one of the channels your claimed player's records were uploaded to, you can verify your claim instantly. You will be redirected to Discord and sent back to this page afterwards.
+
+    .submit = Link Discord
+
 claim-lock-submissions = Ограничить отправку рекордов
     .info = Ограничивает отправку ваших рекордов другими игроками, что означает возможность отправки рекордов только при условии входа в аккаунт с подтвержденным присвоением профиля нужного игрока.
 
@@ -76,15 +81,11 @@ claim-listed-player = Присвоение профиля:
 claim-initiate-panel = Начать присвоение
     .info = Выберите имя игрока, профиль которого хотите присвоить ниже
 
-# { $discord } is replaced by .info-discord, which is turned into a
-# clickable link to Pointercrate Central by default (this can be modified
-# in pointercrate-example/src/main.rs)
-claim-info-panel = Присвоение 101
-    .info-a = Присвоение профиля - это процесс ассоциации профиля в листе с аккаунтом пользователя pointercrate. Подтвержденное присвоение позволяет модифицировать некоторые характеристики игрока, такие как национальность.
-    .info-b = Для начала присвоения нажмите на иконку ручки слева от заголовка "Присвоенный игрок". После выбора профиля запрос все еще не подтвержден. Эти запросы подтверждаются вручную членами команды pointercrate. Вы можете попросить подтверждение запроса на { $discord }.
-    .info-c = Вы не можете присвоить профиль игрока, который уже был присвоен другим пользователем до этого.
+claim-info-panel = Claiming 101
+    .info-a = Player claiming is the process of associating a Demonlist player with a pointercrate user account. A verified claim allows you to to modify some of the player's properties, such as nationality.
+    .info-b = Before claiming a player, you must have at least 1 approved record. To initiate a claim, click the pen left of the 'Claimed Player' heading. Once initiated, connect the YouTube channel which holds your records' videos to your Discord account (Discord settings > Connected Apps), then log into your Discord account on the left to verify the claim. If you cannot verify the claim via Discord login, contact a list moderator.
+    .info-c = You cannot initiate a claim on a player that already has a verified claim by a different user on it.
 
-    .info-discord = этом Discord-сервере
 
 claim-video-panel = Видео рекорда
     .info = Нажатие на запрос в панели 'Менеджер присвоения' выведет случайное видео из принятого рекорда присваиваемым игроком.

@@ -46,7 +46,7 @@ claimed-player = Claimed Player
 # .info-api-link is turned into a clickable link to the geolocation API
 # pointercrate uses, and replaces { $info-api-link }
 claim-geolocate = Geolocate statsviewer flag
-    .info = Clicking the above button let's you set your claimed player's statsviewer flag via IP Geolocation. To offer this functionality, your IP address might be shared with third-party services. Please consult the privacy policy for more information!
+    .info = Clicking the above button lets you set your claimed player's statsviewer flag via IP Geolocation. To offer this functionality, your IP address might be shared with third-party services. Please consult the privacy policy for more information!
 
     .submit = Go
 
@@ -83,15 +83,11 @@ claim-listed-player = Claim on player:
 claim-initiate-panel = Initiate Claim
     .info = Select the player you wish to claim below
 
-# { $discord } is replaced by .info-discord, which is turned into a
-# clickable link to Pointercrate Central by default (this can be modified
-# in pointercrate-example/src/main.rs)
 claim-info-panel = Claiming 101
-    .info-a = Player claiming is the process of associated a demonlist player with a pointercrate user account. A verified claim allows you to to modify some of the player's properties, such as nationality.
-    .info-b = To initiate a claim, click the pen left of the 'Claimed Player' heading. Once initiated, you have an unverified claim on a player. These claims will then be manually verified by members of the pointercrate team. You can request verification in { $discord }.
+    .info-a = Player claiming is the process of associating a Demonlist player with a pointercrate user account. A verified claim allows you to to modify some of the player's properties, such as nationality.
+    .info-b = Before claiming a player, you must have at least 1 approved record. To initiate a claim, click the pen left of the 'Claimed Player' heading. Once initiated, connect the YouTube channel which holds your records' videos to your Discord account (Discord settings > Connected Apps), then log into your Discord account on the left to verify the claim. If you cannot verify the claim via Discord login, contact a list moderator.
     .info-c = You cannot initiate a claim on a player that already has a verified claim by a different user on it.
 
-    .info-discord = this discord server
 
 claim-video-panel = Record video
     .info = Clicking a claim in the 'Manage Claims' panel will pull up a random video of an approved record by the claimed player.

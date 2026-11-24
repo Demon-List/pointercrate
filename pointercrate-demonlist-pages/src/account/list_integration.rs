@@ -215,12 +215,7 @@ impl AccountPageTab for ListIntegrationTab {
                     p {
                         (tr("claim-info-panel.info-a"))
                         br;
-                        (trp_html!(
-                            "claim-info-panel.info-b",
-                            "discord" = html! {
-                                a.link href = (&self.0) { (tr("claim-info-panel.info-discord")) }
-                            }
-                        ))
+                        (tr("claim-info-panel.info-b"))
                         br;
                         (tr("claim-info-panel.info-c"))
                     }

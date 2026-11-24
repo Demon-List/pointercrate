@@ -19,3 +19,4 @@ error-user-discordauthnomatchingyoutubeconnections = You do not have any verifie
 error-user-ratelimit-registration = Too many registrations!
 error-user-ratelimit-soft-registration = Too many failed registration attempts!
 error-user-ratelimit-login = Too many login attempts!
+error-user-ratelimit-discord-link = Too many Discord OAuth requests!

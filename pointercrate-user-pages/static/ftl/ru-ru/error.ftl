@@ -9,7 +9,14 @@ error-user-invalidusername = Неправильное отображаемое �
 error-user-invalidpassword = Неверный пароль! Пароль должен быть минимум 10 символов в длину
 error-user-notyoutube = Данная ссылка не является YouTube-ссылкой
 error-user-nonlegacyaccount = Данная операция (изменение пароля) не является валидной на новом типе аккаунтов, так как вход по паролю для них не поддерживается
+error-user-discordauthinitiatormismatch = You cannot complete a Discord OAuth request you did not initiate.
+error-user-discordauthinvalidtokenexchange = Invalid Discord OAuth token exchange failed: { $error-desc }
+error-user-httpclientfailed = There was a problem making a request to the Discord OAuth API.
+error-user-discordauthtokenexchangefailed = Discord OAuth token exchange failed.
+error-user-discordauthnounverifiedplayerclaim = You do not have an unverified player claim.
+error-user-discordauthnomatchingyoutubeconnections = You do not have any verified YouTube connections on your Discord profile that match your records' videos.
 
 error-user-ratelimit-registration = Слишком много попыток регистрации!
 error-user-ratelimit-soft-registration = Слишком много проваленных попыток регистрации!
 error-user-ratelimit-login = Слишком много попыток входа!
+error-user-ratelimit-discord-link = Too many Discord OAuth requests!
